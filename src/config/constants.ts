@@ -3,19 +3,17 @@
  * 根據您的實際後台 API 地址進行配置
  * 優先級：環境變數 > 開發環境默認值 > 生產環境備用值
  */
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.DEV 
-    ? 'http://127.0.0.1:8000'  // 開發環境默認值 - 請根據您的實際後台 API 地址修改
-    : '/api');  // 生產環境通常使用相對路徑
+// config.ts
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
 
 /**
  * 路由路徑常數
  */
 export const ROUTES = {
   DASHBOARD: '/',
+  _DEBUG: '/debug',
   PRODUCTS: '/products',
-  PRODUCT_DETAIL: '/products/:id',
-  PRODUCT_NEW: '/products/new',
+  PRODUCT_DETAIL: '/products/:id', 
   PRODUCT_EDIT: '/products/:id/edit',
   SETTINGS: '/settings',
 };

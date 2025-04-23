@@ -7,6 +7,7 @@ import './styles/App.css';
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard.tsx'));
 const ProductList = lazy(() => import('./pages/products/ProductList.tsx'));
 const ProductDetail = lazy(() => import('./pages/products/ProductDetail.tsx'));
+const DebugPage = lazy(() => import('./pages/debug/DebugPage.tsx'));
 const ProductNew = lazy(() => import('./pages/products/ProductNew.tsx'));
 const ProductEdit = lazy(() => import('./pages/products/ProductEdit.tsx'));
 const Settings = lazy(() => import('./pages/settings/Settings.tsx'));
@@ -22,7 +23,8 @@ function App() {
           <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
           <Route path={ROUTES.PRODUCTS} element={<ProductList />} />
           <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetail />} />
-          <Route path={ROUTES.PRODUCT_NEW} element={<ProductNew />} />
+          <Route path={ROUTES._DEBUG} element={<DebugPage />} />
+          {/* <Route path={ROUTES.PRODUCT_NEW} element={<ProductNew />} /> */}
           <Route path={ROUTES.PRODUCT_EDIT} element={<ProductEdit />} />
           <Route path={ROUTES.SETTINGS} element={<Settings />} />
         </Routes>

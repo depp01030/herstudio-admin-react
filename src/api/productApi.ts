@@ -1,34 +1,6 @@
 import apiService from './apiService';
-import { PRODUCT_CATEGORIES } from '../config/constants';
-
-// 產品數據類型定義
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  category: string;
-  imageUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-  // 擴展字段
-  material?: string;
-  sizeDescription?: string;
-  availableColors?: string[];
-  availableSizes?: string[];
-  relativeFolderPath?: string;
-}
-
-// 產品列表查詢參數
-export interface ProductQueryParams {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  category?: string;
-  sortBy?: string;
-  order?: 'asc' | 'desc';
-}
+import { DEFAULT_PRODUCT_CATEGORIES } from '../config/defaults';
+import { Product, ProductQueryParams } from '../types/product';
 
 // 產品 API 服務
 const productApi = {
@@ -77,7 +49,7 @@ const productApi = {
       return categories;
     } catch (error) {
       console.warn('無法從 API 獲取產品類別，使用預設類別列表', error);
-      return PRODUCT_CATEGORIES;
+      return DEFAULT_PRODUCT_CATEGORIES;
     }
   }
 };

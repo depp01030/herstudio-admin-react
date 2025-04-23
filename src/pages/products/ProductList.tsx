@@ -3,263 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import productApi, { Product, ProductQueryParams } from '../../api/productApi';
 import { PAGINATION, ROUTES, PRODUCT_CATEGORIES } from '../../config/constants';
 import { CustomType, getCustomTypeLabel, CUSTOM_TYPE_OPTIONS } from '../../types/enums';
+import InlineProductForm from '../../components/product/InlineProductForm';
+import ProductCard from '../../components/product/ProductCard';
 import '../../styles/products.css';
 
-// 定義內嵌表單的屬性類型
-interface InlineProductFormProps {
-  onCancel: () => void;
-  onSuccess: () => void;
-}
-
-// 內嵌的新增產品表單組件
-const InlineProductForm: React.FC<InlineProductFormProps> = ({ onCancel, onSuccess }) => {
-  const initialFormState = {
-    name: '',
-    description: '',
-    price: 0,
-    stock: 0,
-    category: '',
-    imageUrl: '',
-    material: '',
-    sizeDescription: '',
-    customType: CustomType.OTHER // 預設為「其他」類型
-  };
-
-  const [formData, setFormData] = useState(initialFormState);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // 獲取產品類別
-  useEffect(() => {
-    productApi.getCategories()
-      .then(response => {
-        setCategories(response);
-      })
-      .catch(error => {
-        console.error('獲取產品類別失敗:', error);
-        // 使用預設類別列表
-        setCategories(PRODUCT_CATEGORIES);
-      });
-  }, []);
-  
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    
-    // 根據輸入類型處理值
-    let processedValue: string | number = value;
-    
-    if ((type === 'number' || name === 'price' || name === 'stock') && value !== '') {
-      processedValue = parseFloat(value);
-      
-      // 如果解析後不是數字，使用 0
-      if (isNaN(processedValue)) {
-        processedValue = 0;
-      }
-    }
-    
-    setFormData({
-      ...formData,
-      [name]: processedValue
-    });
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name.trim()) {
-      alert('請輸入產品名稱');
-      return;
-    }
-    
-    if (!formData.category) {
-      alert('請選擇產品類別');
-      return;
-    }
-    
-    setSubmitting(true);
-    setError(null);
-    
-    // 準備提交的產品數據
-    const productToCreate = {
-      ...formData,
-      // 確保數字字段是數字類型
-      price: typeof formData.price === 'string' ? parseFloat(formData.price) || 0 : formData.price,
-      stock: typeof formData.stock === 'string' ? parseInt(formData.stock, 10) || 0 : formData.stock
-    };
-    
-    try {
-      console.log('正在創建產品:', productToCreate);
-      
-      // 創建新產品
-      await productApi.createProduct(productToCreate);
-      
-      // 清空表單並通知父組件成功
-      setFormData(initialFormState);
-      onSuccess();
-    } catch (error) {
-      console.error('保存產品失敗:', error);
-      setError('保存產品失敗，請稍後再試');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-  
-  return (
-    <div className="inline-product-form">
-      <div className="inline-form-header">
-        <h3>新增產品</h3>
-        <button type="button" className="close-button" onClick={onCancel}>×</button>
-      </div>
-      
-      {error && <div className="error-message">{error}</div>}
-      
-      <form onSubmit={handleSubmit}>
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="name">產品名稱 *</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="category">類別 *</label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">選擇類別</option>
-              {categories.map(category => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="customType">商品類型 *</label>
-            <select
-              id="customType"
-              name="customType"
-              value={formData.customType}
-              onChange={handleInputChange}
-              required
-            >
-              {CUSTOM_TYPE_OPTIONS.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="material">材質</label>
-            <input
-              type="text"
-              id="material"
-              name="material"
-              value={formData.material || ''}
-              onChange={handleInputChange}
-            />
-          </div>
-        </div>
-        
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="price">價格 *</label>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              value={formData.price}
-              onChange={handleInputChange}
-              min="0"
-              step="0.01"
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="stock">庫存 *</label>
-            <input
-              type="number"
-              id="stock"
-              name="stock"
-              value={formData.stock}
-              onChange={handleInputChange}
-              min="0"
-              required
-            />
-          </div>
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="description">產品描述</label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleInputChange}
-            rows={3}
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="sizeDescription">尺寸描述</label>
-          <textarea
-            id="sizeDescription"
-            name="sizeDescription"
-            value={formData.sizeDescription || ''}
-            onChange={handleInputChange}
-            rows={2}
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="imageUrl">圖片 URL</label>
-          <input
-            type="text"
-            id="imageUrl"
-            name="imageUrl"
-            value={formData.imageUrl || ''}
-            onChange={handleInputChange}
-          />
-        </div>
-        
-        <div className="form-actions">
-          <button
-            type="button"
-            className="cancel-button"
-            onClick={onCancel}
-            disabled={submitting}
-          >
-            取消
-          </button>
-          <button
-            type="submit"
-            className="primary-button"
-            disabled={submitting}
-          >
-            {submitting ? '保存中...' : '保存產品'}
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-};
 
 const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -333,12 +80,12 @@ const ProductList: React.FC = () => {
     });
   };
   
-  const handleSelectAllProducts = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
+  const handleSelectAllProducts = () => {
+    if (selectedProducts.length === products.length) {
+      setSelectedProducts([]);
+    } else {
       const allIds = products.map(product => product.id);
       setSelectedProducts(allIds);
-    } else {
-      setSelectedProducts([]);
     }
   };
   
@@ -484,84 +231,32 @@ const ProductList: React.FC = () => {
           <p>載入產品中...</p>
         </div>
       ) : products.length > 0 ? (
-        <div className="product-table-container">
-          <table className="product-table">
-            <thead>
-              <tr>
-                <th>
-                  <input 
-                    type="checkbox" 
-                    onChange={handleSelectAllProducts}
-                    checked={selectedProducts.length === products.length && products.length > 0}
-                  />
-                </th>
-                <th>圖片</th>
-                <th>名稱</th>
-                <th>類別</th>
-                <th>價格</th>
-                <th>庫存</th>
-                <th>建立時間</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map(product => (
-                <tr key={product.id} className={selectedProducts.includes(product.id) ? 'selected-row' : ''}>
-                  <td>
-                    <input 
-                      type="checkbox" 
-                      checked={selectedProducts.includes(product.id)}
-                      onChange={() => handleSelectProduct(product.id)}
-                    />
-                  </td>
-                  <td>
-                    {product.imageUrl ? (
-                      <img 
-                        src={product.imageUrl} 
-                        alt={product.name} 
-                        className="product-thumbnail" 
-                      />
-                    ) : (
-                      <div className="no-image">無圖片</div>
-                    )}
-                  </td>
-                  <td>
-                    <Link to={`${ROUTES.PRODUCTS}/${product.id}`}>
-                      {product.name}
-                    </Link>
-                  </td>
-                  <td>{product.category}</td>
-                  <td>${product.price.toFixed(2)}</td>
-                  <td>
-                    <span className={product.stock <= 5 ? 'low-stock' : ''}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td>{new Date(product.createdAt).toLocaleDateString()}</td>
-                  <td className="action-buttons">
-                    <Link 
-                      to={`${ROUTES.PRODUCTS}/${product.id}`}
-                      className="view-button"
-                    >
-                      查看
-                    </Link>
-                    <Link 
-                      to={`${ROUTES.PRODUCTS}/${product.id}/edit`}
-                      className="edit-button"
-                    >
-                      編輯
-                    </Link>
-                    <button 
-                      className="delete-button"
-                      onClick={() => handleDeleteProduct(product.id)}
-                    >
-                      刪除
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="product-cards-container">
+          <div className="product-cards-header">
+            <div className="header-checkbox">
+              <input 
+                type="checkbox" 
+                onChange={handleSelectAllProducts}
+                checked={selectedProducts.length === products.length && products.length > 0}
+              />
+              <span>全選</span>
+            </div>
+            <div className="header-right">
+              <span>共 {total} 件商品</span>
+            </div>
+          </div>
+          
+          <div className="product-cards-list">
+            {products.map(product => (
+              <ProductCard 
+                key={product.id}
+                product={product}
+                isSelected={selectedProducts.includes(product.id)}
+                onSelect={handleSelectProduct}
+                onDelete={handleDeleteProduct}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <div className="no-products">
