@@ -24,7 +24,7 @@ body {
 /* 通用頁面容器 */
 .page-container {
   width: 100%;
-  max-width: 1600px; /* 從原本的 1280px 增加到 1600px */
+  max-width: 2000px; /* 從原本的 1280px 增加到 1600px */
   margin: 0 auto;
   padding: 1.5rem;
   background-color: var(--card-background);

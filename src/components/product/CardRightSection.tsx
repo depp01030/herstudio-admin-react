@@ -24,17 +24,17 @@ const CardRightSection: React.FC<CardRightSectionProps> = ({ product, onDelete }
             </div>
           )}
           
-          {product.purchase_price !== undefined && (
+          {product.purchasePrice !== undefined && (
             <div className="price-item">
               <span className="price-label">進貨價:</span>
-              <span className="price-value">${product.purchase_price.toFixed(2)}</span>
+              <span className="price-value">${product.purchasePrice.toFixed(2)}</span>
             </div>
           )}
           
-          {product.total_cost !== undefined && (
+          {product.totalCost !== undefined && (
             <div className="price-item">
               <span className="price-label">總成本:</span>
-              <span className="price-value">${product.total_cost.toFixed(2)}</span>
+              <span className="price-value">${product.totalCost.toFixed(2)}</span>
             </div>
           )}
         </div>
@@ -43,8 +43,8 @@ const CardRightSection: React.FC<CardRightSectionProps> = ({ product, onDelete }
       {/* 庫存資訊 */}
       <div className="product-stock">
         <h4>庫存:</h4>
-        <span className={`stock-value ${(product.real_stock || 0) <= 5 ? 'low-stock' : ''}`}>
-          {product.real_stock !== undefined ? product.real_stock : '無資料'}
+        <span className={`stock-value ${(product.realStock || 0) <= 5 ? 'low-stock' : ''}`}>
+          {product.realStock !== undefined ? product.realStock : '無資料'}
         </span>
       </div>
       
@@ -74,17 +74,17 @@ const CardRightSection: React.FC<CardRightSectionProps> = ({ product, onDelete }
       </div>
       
       {/* Shopee 資訊 */}
-      {product.shopee_item_id && (
+      {product.shopeeItemId && (
         <div className="shopee-info">
           <h4>Shopee 資訊:</h4>
           <div className="shopee-item">
             <span className="shopee-label">商品 ID:</span>
-            <span className="shopee-value">{product.shopee_item_id}</span>
+            <span className="shopee-value">{product.shopeeItemId}</span>
           </div>
-          {product.shopee_category_id && (
+          {product.shopeeCategoryId && (
             <div className="shopee-item">
               <span className="shopee-label">類別 ID:</span>
-              <span className="shopee-value">{product.shopee_category_id}</span>
+              <span className="shopee-value">{product.shopeeCategoryId}</span>
             </div>
           )}
         </div>

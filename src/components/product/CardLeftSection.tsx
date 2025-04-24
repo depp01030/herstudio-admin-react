@@ -1,59 +1,223 @@
 // src/components/product/CardLeftSection.tsx
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  Box,
+  Grid,
+  TextField,
+  Typography,
+  Button,
+  Chip,
+  IconButton,
+  MenuItem,
+  Autocomplete
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { Product } from '../../types/product';
+import { defaultSizeMetricsMap, defaultSizeOptions, defaultColorOptions } from '../../config/defaults';
 
 interface CardLeftSectionProps {
   product: Product;
+  onChange: (field: keyof Product, value: any) => void;
 }
 
-const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product }) => {
+const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) => {
+  const [sizeMetrics, setSizeMetrics] = useState<[string, string][]>(
+    Object.entries(product.sizeMetrics || {})
+  );
+  const [colors, setColors] = useState<string[]>(product.colors || []);
+  const [sizes, setSizes] = useState<string[]>(product.sizes || []);
+
+  useEffect(() => {
+    if (product.customType && defaultSizeMetricsMap[product.customType]) {
+      const newMetrics = defaultSizeMetricsMap[product.customType].map((k) => [k, ''] as [string, string]);
+      setSizeMetrics(newMetrics);
+      onChange('sizeMetrics', Object.fromEntries(newMetrics));
+    }
+  }, [product.customType]);
+
+  const handleMetricChange = (index: number, keyOrValue: 'key' | 'value', newValue: string) => {
+    const updated = [...sizeMetrics];
+    const [k, v] = updated[index];
+    updated[index] = keyOrValue === 'key' ? [newValue, v] : [k, newValue];
+    setSizeMetrics(updated);
+    onChange('sizeMetrics', Object.fromEntries(updated));
+  };
+
+  const addMetric = () => {
+    const updated = [...sizeMetrics, ['', '']];
+    setSizeMetrics(updated);
+  };
+
+  const removeMetric = (index: number) => {
+    const updated = [...sizeMetrics];
+    updated.splice(index, 1);
+    setSizeMetrics(updated);
+    onChange('sizeMetrics', Object.fromEntries(updated));
+  };
+
+  const parseIntOrZero = (value: string) => {
+    const n = parseInt(value, 10);
+    return isNaN(n) ? 0 : n;
+  };
+
   return (
-    <div className="product-card-left-section">
-      <div className="product-description">
-        <h4>產品描述:</h4>
-        <p>{product.description || '無描述'}</p>
-      </div>
+    <Box>
+      {/* ｜訂購價＿｜總成本＿｜售價＿ */}
+      <Grid container spacing={2}>
+        <Grid item xs={4}>
+          <TextField
+            label="訂購價"
+            type="number"
+            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+            value={product.purchasePrice ?? ''}
+            fullWidth
+            onChange={(e) => onChange('purchasePrice', parseIntOrZero(e.target.value))}
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <TextField
+            label="總成本"
+            type="number"
+            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+            value={product.totalCost ?? ''}
+            fullWidth
+            onChange={(e) => onChange('totalCost', parseIntOrZero(e.target.value))}
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <TextField
+            label="售價"
+            type="number"
+            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+            value={product.price ?? ''}
+            fullWidth
+            onChange={(e) => onChange('price', parseIntOrZero(e.target.value))}
+          />
+        </Grid>
+      </Grid>
 
-      {product.material && (
-        <div className="product-material">
-          <h4>材質:</h4>
-          <p>{product.material}</p>
-        </div>
-      )}
+      {/* 商品描述＿（提前到第二個） */}
+      <Box mt={2}>
+        <TextField
+          label="商品描述"
+          value={product.description || ''}
+          fullWidth
+          multiline
+          onChange={(e) => onChange('description', e.target.value)}
+        />
+      </Box>
 
-      {product.size_note && (
-        <div className="product-size-description">
-          <h4>尺寸描述:</h4>
-          <p>{product.size_note}</p>
-        </div>
-      )}
+      {/* 商品類別＿（下拉式選單） */}
+      <Box mt={2}>
+        <TextField
+          label="商品類別"
+          value={product.customType || ''}
+          fullWidth
+          select
+          onChange={(e) => onChange('customType', e.target.value)}
+        >
+          {Object.keys(defaultSizeMetricsMap).map((type) => (
+            <MenuItem key={type} value={type}>{type}</MenuItem>
+          ))}
+        </TextField>
+      </Box>
 
-      {Object.keys(product.size_metrics || {}).length > 0 && (
-        <div className="product-size-metrics">
-          <h4>尺寸詳情:</h4>
-          <div className="size-metrics-list">
-            {Object.entries(product.size_metrics).map(([key, value]) => (
-              <div key={key} className="size-metric-item">
-                <span className="metric-name">{key}:</span>
-                <span className="metric-value">{value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      
-      <div className="product-source-info">
-        <h4>來源資訊:</h4>
-        <p>{product.stall_name ? `檔口: ${product.stall_name}` : '無檔口資訊'}</p>
-        {product.source && <p>來源: {product.source}</p>}
-      </div>
+      {/* 材質＿ */}
+      <Box mt={2}>
+        <TextField
+          label="材質"
+          value={product.material || ''}
+          fullWidth
+          onChange={(e) => onChange('material', e.target.value)}
+        />
+      </Box>
 
-      <div className="product-creation-date">
-        <h4>建立時間:</h4>
-        <p>{product.created_at ? new Date(product.created_at).toLocaleDateString() : '無資料'}</p>
-      </div>
-    </div>
+      {/* 尺寸明細 */}
+      <Box mt={3}>
+        <Typography variant="subtitle1">尺寸明細</Typography>
+        {sizeMetrics.map(([k, v], index) => (
+          <Box key={index} display="flex" alignItems="center" gap={1} mb={1}>
+            <TextField
+              label="欄位"
+              value={k}
+              onChange={(e) => handleMetricChange(index, 'key', e.target.value)}
+            />
+            <TextField
+              label="內容"
+              value={v}
+              onChange={(e) => handleMetricChange(index, 'value', e.target.value)}
+            />
+            <IconButton onClick={() => removeMetric(index)}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        ))}
+        <Button onClick={addMetric} size="small">新增欄位</Button>
+      </Box>
+
+      {/* 顏色 EX:紅黃藍 - 改用 Autocomplete */}
+      <Box mt={3}>
+        <Typography variant="subtitle1">顏色</Typography>
+        <Autocomplete
+          multiple
+          freeSolo
+          options={defaultColorOptions}
+          value={colors}
+          onChange={(_, newValue) => {
+            setColors(newValue);
+            onChange('colors', newValue);
+          }}
+          renderTags={(value: string[], getTagProps) =>
+            value.map((option, index) => (
+              <Chip
+                key={option}
+                label={option}
+                {...getTagProps({ index })}
+              />
+            ))
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant="outlined"
+              placeholder="輸入或選擇顏色"
+            />
+          )}
+        />
+      </Box>
+
+      {/* 尺寸 EX:s,m,l,free - 改用 Autocomplete */}
+      <Box mt={3}>
+        <Typography variant="subtitle1">尺寸</Typography>
+        <Autocomplete
+          multiple
+          freeSolo
+          options={defaultSizeOptions}
+          value={sizes}
+          onChange={(_, newValue) => {
+            setSizes(newValue);
+            onChange('sizes', newValue);
+          }}
+          renderTags={(value: string[], getTagProps) =>
+            value.map((option, index) => (
+              <Chip
+                key={option}
+                label={option}
+                {...getTagProps({ index })}
+              />
+            ))
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant="outlined"
+              placeholder="輸入或選擇尺寸"
+            />
+          )}
+        />
+      </Box>
+    </Box>
   );
 };
 

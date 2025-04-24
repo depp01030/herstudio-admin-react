@@ -37,7 +37,7 @@ export interface ProductBase {
 
 // === 表單上的產品 ===
 export interface Product extends ProductBase {
-  id: number;
+  id: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -50,7 +50,7 @@ export interface ProductUpdate extends ProductBase {}
 
 // === 資料庫中的產品（加上 ID 與系統欄位） ===
 export interface ProductInDB extends ProductBase {
-  id: number;
+  id: string;
   createdAt?: string;
   updatedAt?: string;
   shopeeItemId?: string;
@@ -59,7 +59,7 @@ export interface ProductInDB extends ProductBase {
 
 // === 查詢用的參數（對應 ProductQuery）===
 export interface ProductQueryParams {
-  id?: number;
+  id?: string;
   name?: string;
   itemStatus?: string;
   stall?: string;

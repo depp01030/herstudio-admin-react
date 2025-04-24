@@ -28,3 +28,14 @@ export const SESSION_STORAGE_KEYS = {
 export const CACHE_DURATION = {
   PRODUCT_CATEGORIES: 24 * 60 * 60 * 1000, // 24小時
 };
+
+export const defaultSizeMetricsMap: Record<string, string[]> = {
+  coat: ['肩寬', '胸圍', '袖長', '衣長'],
+  dress: ['肩寬', '胸圍', '腰圍', '裙長'],
+  skirt: ['腰圍', '下擺'],
+  pants: ['腰圍', '褲長'],
+  top: ['肩寬', '胸圍', '衣長'],
+};
+
+export const defaultSizeOptions = ['S', 'M', 'L', 'XL', 'Free'];
+export const defaultColorOptions = ['紅', '黃', '藍', '黑', '白'];
