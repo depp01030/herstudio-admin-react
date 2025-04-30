@@ -4,13 +4,13 @@ import { ROUTES } from './config/constants';
 import './styles/App.css';
 
 // 懶加載頁面組件
-const Dashboard = lazy(() => import('./pages/dashboard/Dashboard.tsx'));
-const ProductList = lazy(() => import('./pages/products/ProductList.tsx'));
-const ProductDetail = lazy(() => import('./pages/products/ProductDetail.tsx'));
-const DebugPage = lazy(() => import('./pages/debug/DebugPage.tsx'));
-const ProductNew = lazy(() => import('./pages/products/ProductNew.tsx'));
-const ProductEdit = lazy(() => import('./pages/products/ProductEdit.tsx'));
-const Settings = lazy(() => import('./pages/settings/Settings.tsx'));
+const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
+const ProductList = lazy(() => import('@/pages/products/ProductList'));
+const ProductDetail = lazy(() => import('@/pages/products/ProductDetail'));
+const DebugPage = lazy(() => import('@/pages/debug/DebugPage'));
+const ProductNew = lazy(() => import('@/pages/products/ProductNew'));
+const ProductEdit = lazy(() => import('@/pages/products/ProductEdit'));
+const Settings = lazy(() => import('@/pages/settings/Settings'));
 
 // 載入中顯示的組件
 const Loading = () => <div className="loading">載入中...</div>;

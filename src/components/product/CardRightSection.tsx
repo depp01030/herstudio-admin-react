@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Product } from '../../types/product';
-import { ROUTES } from '../../config/constants';
+import { Product } from '@/types/product';
+import { ROUTES } from '@/config/constants';
 
 interface CardRightSectionProps {
   product: Product;

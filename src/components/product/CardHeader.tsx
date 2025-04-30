@@ -1,7 +1,7 @@
 // src/components/product/CardHeader.tsx
 
 import React from 'react';
-import { Product } from '../../types/product';
+import { Product } from '@/types/product';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -48,7 +48,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
       onClick={onToggleExpand}
     >
       <Grid container spacing={2} alignItems="center" wrap="wrap">
-        <Grid item>
+        <Grid >
           <Box
             sx={{
               width: 60,
@@ -72,13 +72,13 @@ const CardHeader: React.FC<CardHeaderProps> = ({
           </Box>
         </Grid>
 
-        <Grid item>
+        <Grid >
           <Typography variant="body1" fontWeight="bold" color="primary">
             #{product.id}
           </Typography>
         </Grid>
 
-        <Grid item>
+        <Grid >
           <TextField
             label="檔口"
             variant="standard"
@@ -89,7 +89,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
           />
         </Grid>
 
-        <Grid item>
+        <Grid >
           <TextField
             label="來源"
             variant="standard"
@@ -100,7 +100,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
           />
         </Grid>
 
-        <Grid item>
+        <Grid >
           <TextField
             label="連結"
             variant="standard"
@@ -112,9 +112,9 @@ const CardHeader: React.FC<CardHeaderProps> = ({
           />
         </Grid>
 
-        <Grid item xs />
 
-        <Grid item>
+
+        <Grid >
           <Stack direction="row" spacing={1} onClick={(e) => e.stopPropagation()}>
             {onSave && (
               <Button variant="contained" size="small" onClick={onSave}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import productApi, { Product } from '../../api/productApi';
+import productApi, { Product } from '../../api/admin/productApi';
 import { ROUTES } from '../../config/constants';
 import '../../styles/products.css';
 

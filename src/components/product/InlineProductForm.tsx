@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../../types/product';
-import productApi from '../../api/productApi';
+import productApi from '../../api/admin/productApi';
 import { PAGINATION, ROUTES, PRODUCT_CATEGORIES } from '../../config/constants';
 import { CustomType, getCustomTypeLabel, CUSTOM_TYPE_OPTIONS } from '../../types/enums';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';

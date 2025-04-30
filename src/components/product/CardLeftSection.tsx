@@ -13,7 +13,7 @@ import {
   Autocomplete
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Product } from '../../types/product';
+import { Product } from '@/types/product';
 import { defaultSizeMetricsMap, defaultSizeOptions, defaultColorOptions } from '../../config/defaults';
 
 interface CardLeftSectionProps {
@@ -65,7 +65,7 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
     <Box>
       {/* ｜訂購價＿｜總成本＿｜售價＿ */}
       <Grid container spacing={2}>
-        <Grid item xs={4}>
+        <Grid >
           <TextField
             label="訂購價"
             type="number"
@@ -75,7 +75,7 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
             onChange={(e) => onChange('purchasePrice', parseIntOrZero(e.target.value))}
           />
         </Grid>
-        <Grid item xs={4}>
+        <Grid >
           <TextField
             label="總成本"
             type="number"
@@ -85,7 +85,7 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
             onChange={(e) => onChange('totalCost', parseIntOrZero(e.target.value))}
           />
         </Grid>
-        <Grid item xs={4}>
+        <Grid >
           <TextField
             label="售價"
             type="number"

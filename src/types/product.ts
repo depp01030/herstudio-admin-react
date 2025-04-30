@@ -37,7 +37,7 @@ export interface ProductBase {
 
 // === 表單上的產品 ===
 export interface Product extends ProductBase {
-  id: string;
+  id: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -59,16 +59,17 @@ export interface ProductInDB extends ProductBase {
 
 // === 查詢用的參數（對應 ProductQuery）===
 export interface ProductQueryParams {
-  id?: string;
-  name?: string;
-  itemStatus?: string;
-  stall?: string;
-  fromDate?: string;
-  sourceUrl?: string;
+  // 基本篩選條件
+  id?: number;              // 商品 ID 精準比對
+  name?: string;            // 商品名稱模糊比對
+  stall?: string;           // 檔口名稱模糊比對
+  fromDate?: string;        // ISO 格式日期字串 (e.g., '2024-04-01')
+  source?: string;          // 來源模糊比對
 
-  // 分頁/排序
-  page?: number;
-  pageSize?: number;
-  sortBy?: string;
-  order?: 'asc' | 'desc';
+  // 分頁與排序
+  page?: number;            // 第幾頁（從1開始）
+  pageSize?: number;        // 每頁幾筆
+  sortBy?: string;          // 排序欄位（created_at / price / name）
+  sortOrder?: 'asc' | 'desc'; // 排序方式
 }
+

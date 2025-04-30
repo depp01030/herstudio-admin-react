@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import productApi from '../api/productApi';
+import productApi from '../api/admin/productApi';
 import { DEFAULT_PRODUCT_CATEGORIES, SESSION_STORAGE_KEYS, CACHE_DURATION } from '../config/defaults';
 
 /**
