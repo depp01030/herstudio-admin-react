@@ -1,4 +1,4 @@
-// src/components/product/CardHeader.tsx
+// src/components/product/ProductCardHeader.tsx
 
 import React from 'react';
 import { Product } from '@/types/product';
@@ -10,7 +10,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Paper from '@mui/material/Paper';
 
-interface CardHeaderProps {
+interface ProductCardHeaderProps {
   product: Product;
   isSelected?: boolean;
   onSelect?: (id: number) => void;
@@ -21,7 +21,7 @@ interface CardHeaderProps {
   onDelete?: () => void;
 }
 
-const CardHeader: React.FC<CardHeaderProps> = ({
+const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
   product,
   isSelected,
   onSelect,
@@ -29,7 +29,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
   isExpanded,
   onChange,
   onSave,
-  onDelete
+  onDelete,
 }) => {
   return (
     <Paper
@@ -43,12 +43,12 @@ const CardHeader: React.FC<CardHeaderProps> = ({
         pt: 2,
         backgroundColor: isExpanded ? 'grey.100' : 'white',
         cursor: 'pointer',
-        transition: 'background-color 0.2s ease'
+        transition: 'background-color 0.2s ease',
       }}
       onClick={onToggleExpand}
     >
       <Grid container spacing={2} alignItems="center" wrap="wrap">
-        <Grid >
+        <Grid>
           <Box
             sx={{
               width: 60,
@@ -60,25 +60,29 @@ const CardHeader: React.FC<CardHeaderProps> = ({
               fontSize: 12,
               fontWeight: 'medium',
               borderRadius: 1,
-              overflow: 'hidden'
+              overflow: 'hidden',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {product.mainImage ? (
-              <img src={product.mainImage} alt="商品預覽" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img
+                src={product.mainImage}
+                alt="商品預覽"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             ) : (
               '無圖片'
             )}
           </Box>
         </Grid>
 
-        <Grid >
+        <Grid>
           <Typography variant="body1" fontWeight="bold" color="primary">
             #{product.id}
           </Typography>
         </Grid>
 
-        <Grid >
+        <Grid>
           <TextField
             label="檔口"
             variant="standard"
@@ -89,7 +93,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
           />
         </Grid>
 
-        <Grid >
+        <Grid>
           <TextField
             label="來源"
             variant="standard"
@@ -100,7 +104,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
           />
         </Grid>
 
-        <Grid >
+        <Grid>
           <TextField
             label="連結"
             variant="standard"
@@ -112,9 +116,7 @@ const CardHeader: React.FC<CardHeaderProps> = ({
           />
         </Grid>
 
-
-
-        <Grid >
+        <Grid>
           <Stack direction="row" spacing={1} onClick={(e) => e.stopPropagation()}>
             {onSave && (
               <Button variant="contained" size="small" onClick={onSave}>
@@ -122,15 +124,23 @@ const CardHeader: React.FC<CardHeaderProps> = ({
               </Button>
             )}
             {onDelete && (
-              <Button variant="outlined" size="small" color="error" onClick={onDelete}>
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+              >
                 刪除
               </Button>
             )}
           </Stack>
-        </Grid>
+        </Grid> 
       </Grid>
 
-      {isExpanded && (
+      <Grid>
         <Box mt={2} onClick={(e) => e.stopPropagation()}>
           <TextField
             label="商品名稱"
@@ -140,9 +150,11 @@ const CardHeader: React.FC<CardHeaderProps> = ({
             onChange={(e) => onChange?.('name', e.target.value)}
           />
         </Box>
-      )}
+      </Grid>
+
+      {isExpanded }
     </Paper>
   );
 };
 
-export default CardHeader;
+export default ProductCardHeader;

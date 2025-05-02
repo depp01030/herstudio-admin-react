@@ -1,4 +1,4 @@
-// src/components/product/CardLeftSection.tsx
+// src/components/product/ProductCardInfo.tsx
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -10,18 +10,18 @@ import {
   Chip,
   IconButton,
   MenuItem,
-  Autocomplete
+  Autocomplete,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Product } from '@/types/product';
-import { defaultSizeMetricsMap, defaultSizeOptions, defaultColorOptions } from '../../config/defaults';
+import { defaultSizeMetricsMap, defaultSizeOptions, defaultColorOptions } from '@/config/defaults';
 
-interface CardLeftSectionProps {
+interface ProductCardInfoProps {
   product: Product;
   onChange: (field: keyof Product, value: any) => void;
 }
 
-const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) => {
+const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) => {
   const [sizeMetrics, setSizeMetrics] = useState<[string, string][]>(
     Object.entries(product.sizeMetrics || {})
   );
@@ -63,9 +63,8 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
 
   return (
     <Box>
-      {/* ｜訂購價＿｜總成本＿｜售價＿ */}
       <Grid container spacing={2}>
-        <Grid >
+        <Grid>
           <TextField
             label="訂購價"
             type="number"
@@ -75,7 +74,7 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
             onChange={(e) => onChange('purchasePrice', parseIntOrZero(e.target.value))}
           />
         </Grid>
-        <Grid >
+        <Grid>
           <TextField
             label="總成本"
             type="number"
@@ -85,7 +84,7 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
             onChange={(e) => onChange('totalCost', parseIntOrZero(e.target.value))}
           />
         </Grid>
-        <Grid >
+        <Grid>
           <TextField
             label="售價"
             type="number"
@@ -97,7 +96,6 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
         </Grid>
       </Grid>
 
-      {/* 商品描述＿（提前到第二個） */}
       <Box mt={2}>
         <TextField
           label="商品描述"
@@ -108,7 +106,6 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
         />
       </Box>
 
-      {/* 商品類別＿（下拉式選單） */}
       <Box mt={2}>
         <TextField
           label="商品類別"
@@ -123,7 +120,6 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
         </TextField>
       </Box>
 
-      {/* 材質＿ */}
       <Box mt={2}>
         <TextField
           label="材質"
@@ -133,7 +129,6 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
         />
       </Box>
 
-      {/* 尺寸明細 */}
       <Box mt={3}>
         <Typography variant="subtitle1">尺寸明細</Typography>
         {sizeMetrics.map(([k, v], index) => (
@@ -156,7 +151,6 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
         <Button onClick={addMetric} size="small">新增欄位</Button>
       </Box>
 
-      {/* 顏色 EX:紅黃藍 - 改用 Autocomplete */}
       <Box mt={3}>
         <Typography variant="subtitle1">顏色</Typography>
         <Autocomplete
@@ -170,24 +164,15 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
           }}
           renderTags={(value: string[], getTagProps) =>
             value.map((option, index) => (
-              <Chip
-                key={option}
-                label={option}
-                {...getTagProps({ index })}
-              />
+              <Chip key={option} label={option} {...getTagProps({ index })} />
             ))
           }
           renderInput={(params) => (
-            <TextField
-              {...params}
-              variant="outlined"
-              placeholder="輸入或選擇顏色"
-            />
+            <TextField {...params} variant="outlined" placeholder="輸入或選擇顏色" />
           )}
         />
       </Box>
 
-      {/* 尺寸 EX:s,m,l,free - 改用 Autocomplete */}
       <Box mt={3}>
         <Typography variant="subtitle1">尺寸</Typography>
         <Autocomplete
@@ -201,19 +186,11 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
           }}
           renderTags={(value: string[], getTagProps) =>
             value.map((option, index) => (
-              <Chip
-                key={option}
-                label={option}
-                {...getTagProps({ index })}
-              />
+              <Chip key={option} label={option} {...getTagProps({ index })} />
             ))
           }
           renderInput={(params) => (
-            <TextField
-              {...params}
-              variant="outlined"
-              placeholder="輸入或選擇尺寸"
-            />
+            <TextField {...params} variant="outlined" placeholder="輸入或選擇尺寸" />
           )}
         />
       </Box>
@@ -221,4 +198,4 @@ const CardLeftSection: React.FC<CardLeftSectionProps> = ({ product, onChange }) 
   );
 };
 
-export default CardLeftSection;
+export default ProductCardInfo;

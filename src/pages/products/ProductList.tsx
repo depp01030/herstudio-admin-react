@@ -1,27 +1,26 @@
 // src/pages/products/ProductList.tsx
+
 import React, { useEffect } from 'react';
 import ProductFilterForm from '@/components/form/ProductFilterForm';
 import ProductListBody from '@/components/product/ProductListBody';
 import PaginationControls from '@/components/product/PaginationControls';
-import useProductStore from '@/stores/productStore';
 import '@/styles/products.css';
+import { useProductActions } from '@/hooks/useProductsActions';
 
 const ProductList: React.FC = () => {
-  const { fetch, items } = useProductStore();
+  const { fetchProducts } = useProductActions();
 
   useEffect(() => {
-    if (items.length === 0) {
-      fetch(); // 初次載入資料
-    }
-  }, []); 
+    fetchProducts();
+  }, [fetchProducts]);
 
   return (
     <div className="page-container product-list-page">
       <div className="page-header">
         <h1>產品列表</h1>
-      </div> 
-      <ProductFilterForm /> 
-      <ProductListBody /> 
+      </div>
+      <ProductFilterForm />
+      <ProductListBody />
       <PaginationControls />
     </div>
   );

@@ -1,16 +1,14 @@
 import React, { useState, useRef, MouseEvent, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Product } from '../../types/product';
-import { ROUTES } from '../../config/constants';
-import CardHeader from './CardHeader';
-import CardLeftSection from './CardLeftSection';
-import CardRightSection from './CardRightSection';
+import { Product } from '@/types/product';
+import ProductCardHeader from './ProductCardHeader';
+import ProductCardInfo from './ProductCardInfo';
+import ProductCardImage from './ProductCardImage';
+import { useProductCardActions } from '@/hooks/useProductCardActions';
 
 interface ProductCardProps {
   product: Product;
   isSelected: boolean;
   onSelect: (id: number) => void;
-  onDelete: (id: number) => void;
   onUpdate?: (updated: Product) => void;
 }
 
@@ -18,56 +16,52 @@ const ProductCard: React.FC<ProductCardProps> = ({
   product,
   isSelected,
   onSelect,
-  onDelete,
-  onUpdate
+  onUpdate,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [editableProduct, setEditableProduct] = useState<Product>(product);
-  const [leftSectionWidth, setLeftSectionWidth] = useState(50); // percentage
+  const [leftSectionWidth, setLeftSectionWidth] = useState(50);
   const isDraggingRef = useRef(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null); 
+  const actions = useProductCardActions(product);
+  const { info, submit, deleteProduct } = actions;
 
-  const toggleExpand = () => {
-    setIsExpanded(prev => !prev);
-  };
+  const toggleExpand = () => setIsExpanded((prev) => !prev);
 
-  const handleFieldChange = (field: keyof Product, value: any) => {
-    setEditableProduct(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSave = () => {
-    if (onUpdate) {
-      onUpdate(editableProduct);
+  const handleSave = async () => {
+    try {
+      const saved = await submit();
+      if (onUpdate) onUpdate(saved);
+    } catch (err) {
+      console.error('儲存失敗', err);
     }
   };
 
-  const handleResizeStart = (e: React.MouseEvent) => {
+  const handleDelete = async () => {
+    await deleteProduct(product.id);
+  };
+
+  const handleResizeStart = (e: MouseEvent) => {
     e.preventDefault();
     isDraggingRef.current = true;
 
-    const handleResizeMove = (moveEvent: MouseEvent) => {
+    const handleMove = (moveEvent: MouseEvent) => {
       if (isDraggingRef.current && containerRef.current) {
-        const containerRect = containerRef.current.getBoundingClientRect();
-        const newLeftWidth = ((moveEvent.clientX - containerRect.left) / containerRect.width) * 100;
-        // Limit resizing between 20% and 80%
-        setLeftSectionWidth(Math.min(Math.max(newLeftWidth, 20), 80));
+        const rect = containerRef.current.getBoundingClientRect();
+        const newWidth = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+        setLeftSectionWidth(Math.min(Math.max(newWidth, 20), 80));
       }
     };
 
-    const handleResizeEnd = () => {
+    const handleEnd = () => {
       isDraggingRef.current = false;
-      window.removeEventListener('mousemove', handleResizeMove);
-      window.removeEventListener('mouseup', handleResizeEnd);
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleEnd);
     };
 
-    window.addEventListener('mousemove', handleResizeMove);
-    window.addEventListener('mouseup', handleResizeEnd);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleEnd);
   };
 
-  // Clean up event listeners when component unmounts
   useEffect(() => {
     return () => {
       window.removeEventListener('mousemove', () => {});
@@ -77,42 +71,31 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className={`product-card ${isSelected ? 'selected' : ''} ${isExpanded ? 'expanded' : ''}`}>
-      <CardHeader
-        product={editableProduct}
+      <ProductCardHeader
+        product={info.editableProduct}
         isSelected={isSelected}
         onSelect={onSelect}
         onToggleExpand={toggleExpand}
         isExpanded={isExpanded}
-        onChange={handleFieldChange}
+        onChange={info.updateField}
         onSave={handleSave}
-        onDelete={() => onDelete(product.id)}
+        onDelete={handleDelete}
       />
 
       {isExpanded && (
-        <div 
-          className="product-card-body" 
+        <div
+          className="product-card-body"
           ref={containerRef}
-          style={{ 
-            display: 'flex', 
-            flexDirection: 'row',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
+          style={{ display: 'flex', flexDirection: 'row', position: 'relative', overflow: 'hidden' }}
         >
-          <div className="product-card-left" style={{ 
-            width: `${leftSectionWidth}%`, 
-            padding: '10px',
-            overflow: 'auto',
-            flexShrink: 0
-          }}>
-            <CardLeftSection
-              product={editableProduct}
-              onChange={handleFieldChange}
-            />
+          <div
+            className="product-card-left"
+            style={{ width: `${leftSectionWidth}%`, padding: '10px', overflow: 'auto', flexShrink: 0 }}
+          >
+            <ProductCardInfo product={info.editableProduct} onChange={info.updateField} />
           </div>
-          
-          {/* Resizable divider */}
-          <div 
+
+          <div
             className="resizable-divider"
             style={{
               width: '8px',
@@ -121,24 +104,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
               zIndex: 10,
               position: 'relative',
               flexShrink: 0,
-              transition: 'background-color 0.2s',
-              '&:hover': {
-                backgroundColor: '#aaa',
-              }
             }}
             onMouseDown={handleResizeStart}
           />
-          
-          <div className="product-card-right" style={{ 
-            width: `${100 - leftSectionWidth}%`,
-            padding: '10px',
-            overflow: 'auto',
-            flexShrink: 0
-          }}>
-            <CardRightSection
-              product={editableProduct}
-              onDelete={onDelete}
-            />
+
+          <div
+            className="product-card-right"
+            style={{ width: `${100 - leftSectionWidth}%`, padding: '10px', overflow: 'auto', flexShrink: 0 }}
+          >
+            <ProductCardImage product={info.editableProduct} />
           </div>
         </div>
       )}

@@ -26,7 +26,7 @@ const apiService = {
     return handleResponse(response);
   },
 
-  post: async <T>(endpoint: string, data = {}): Promise<T> => {
+  post: async <T>(endpoint: string, data = {}, p0: { headers: { 'Content-Type': string; }; }): Promise<T> => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

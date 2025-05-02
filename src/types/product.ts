@@ -1,3 +1,5 @@
+//src/types/product.ts
+
 // === 基礎欄位（前端用 camelCase 命名） ===
 export interface ProductBase {
   // 基本資訊

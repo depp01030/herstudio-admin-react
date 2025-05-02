@@ -30,17 +30,6 @@ export const PAGINATION = {
  * 商品類別列表
  * 參考自 product-dashboard 的標準類別
  */
-export const PRODUCT_CATEGORIES = [
-  '女性上著',
-  '女性下著',
-  '洋裝',
-  '外套',
-  '裙子',
-  '褲子',
-  '配飾',
-  '圍巾',
-  '其他'
-];
 
 /**
  * 本地存儲鍵
@@ -50,3 +39,6 @@ export const STORAGE_KEYS = {
   USER_INFO: 'user_info',
   THEME: 'app_theme',
 };
+
+
+export const IMAGE_ACTIONS = ['new', 'original', 'update', 'delete'] as const; 
