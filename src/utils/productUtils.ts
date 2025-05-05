@@ -1,0 +1,26 @@
+import { Product } from '@/types/product';
+
+export const getEmptyProduct = (): Product => ({
+  id: 0,
+  name: '',
+  description: '',
+  purchasePrice: 0,
+  totalCost: 0,
+  price: 0,
+  stallName: '',
+  source: '',
+  sourceUrl: '',
+  customType: 'other',
+  material: '',
+  sizeMetrics: {},
+  sizeNote: '',
+  realStock: 0,
+  itemStatus: '',
+  itemFolder: '',
+  mainImage: '',
+  selectedImages: [],
+  colors: [],
+  sizes: [],
+  createdAt: '',
+  updatedAt: '',
+});

@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Product } from '@/types/product';
-import { defaultSizeMetricsMap, defaultSizeOptions, defaultColorOptions } from '@/config/defaults';
+import useProductFieldStore from '@/stores/productFieldStore';
 
 interface ProductCardInfoProps {
   product: Product;
@@ -20,38 +20,63 @@ interface ProductCardInfoProps {
 }
 
 const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) => {
+  const {
+    getMetricLabel,
+    getMetricKey,
+    defaultSizeMetricsMap,
+    sizeMetricLabelMap,
+    productTypeLabelMap,
+    defaultColorOptions,
+    defaultSizeOptions,
+  } = useProductFieldStore();
+
   const [sizeMetrics, setSizeMetrics] = useState<[string, string][]>(
-    Object.entries(product.sizeMetrics || {})
+    Object.entries(product.sizeMetrics || {}).map(([k, v]) => [getMetricLabel(k) || k, v])
   );
   const [colors, setColors] = useState<string[]>(product.colors || []);
   const [sizes, setSizes] = useState<string[]>(product.sizes || []);
 
   useEffect(() => {
-    if (product.customType && defaultSizeMetricsMap[product.customType]) {
-      const newMetrics = defaultSizeMetricsMap[product.customType].map((k) => [k, ''] as [string, string]);
+    const key = product.customType;
+    const existing = product.sizeMetrics || {};
+    if (key && key in defaultSizeMetricsMap) {
+      const metricKeys = defaultSizeMetricsMap[key as keyof typeof defaultSizeMetricsMap];
+      const newMetrics = metricKeys.map((k) => {
+        const label = getMetricLabel(k) || k;
+        return [label, existing[k] ?? ''] as [string, string];
+      });
       setSizeMetrics(newMetrics);
-      onChange('sizeMetrics', Object.fromEntries(newMetrics));
+      const converted = Object.fromEntries(newMetrics.map(([label, value]) => [getSafeMetricKey(label), value]));
+      onChange('sizeMetrics', converted);
     }
   }, [product.customType]);
+
+  const getSafeMetricKey = (label: string): string => {
+    return getMetricKey(label) ?? label;
+  };
 
   const handleMetricChange = (index: number, keyOrValue: 'key' | 'value', newValue: string) => {
     const updated = [...sizeMetrics];
     const [k, v] = updated[index];
     updated[index] = keyOrValue === 'key' ? [newValue, v] : [k, newValue];
     setSizeMetrics(updated);
-    onChange('sizeMetrics', Object.fromEntries(updated));
+    const converted = Object.fromEntries(updated.map(([label, value]) => [getSafeMetricKey(label), value]));
+    onChange('sizeMetrics', converted);
   };
 
   const addMetric = () => {
-    const updated = [...sizeMetrics, ['', '']];
+    const updated: [string, string][] = [...sizeMetrics, ['', '']];
     setSizeMetrics(updated);
+    const converted = Object.fromEntries(updated.map(([label, value]) => [getSafeMetricKey(label), value]));
+    onChange('sizeMetrics', converted);
   };
 
   const removeMetric = (index: number) => {
     const updated = [...sizeMetrics];
     updated.splice(index, 1);
     setSizeMetrics(updated);
-    onChange('sizeMetrics', Object.fromEntries(updated));
+    const converted = Object.fromEntries(updated.map(([label, value]) => [getSafeMetricKey(label), value]));
+    onChange('sizeMetrics', converted);
   };
 
   const parseIntOrZero = (value: string) => {
@@ -61,6 +86,7 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
 
   return (
     <Box>
+      {/* 價格區塊 */}
       <Grid container spacing={2}>
         <Grid>
           <TextField
@@ -94,6 +120,7 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
         </Grid>
       </Grid>
 
+      {/* 商品描述 */}
       <Box mt={2}>
         <TextField
           label="商品描述"
@@ -104,6 +131,7 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
         />
       </Box>
 
+      {/* 商品類別選擇 */}
       <Box mt={2}>
         <TextField
           label="商品類別"
@@ -112,12 +140,13 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
           select
           onChange={(e) => onChange('customType', e.target.value)}
         >
-          {Object.keys(defaultSizeMetricsMap).map((type) => (
-            <MenuItem key={type} value={type}>{type}</MenuItem>
+          {Object.entries(productTypeLabelMap).map(([key, label]) => (
+            <MenuItem key={key} value={key}>{label}</MenuItem>
           ))}
         </TextField>
       </Box>
 
+      {/* 材質 */}
       <Box mt={2}>
         <TextField
           label="材質"
@@ -127,18 +156,24 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
         />
       </Box>
 
+      {/* 尺寸明細欄位 */}
       <Box mt={3}>
         <Typography variant="subtitle1">尺寸明細</Typography>
-        {sizeMetrics.map(([k, v], index) => (
+        {sizeMetrics.map(([label, value], index) => (
           <Box key={index} display="flex" alignItems="center" gap={1} mb={1}>
-            <TextField
-              label="欄位"
-              value={k}
-              onChange={(e) => handleMetricChange(index, 'key', e.target.value)}
+            <Autocomplete
+              freeSolo
+              options={Object.values(sizeMetricLabelMap)}
+              value={label}
+              onChange={(_, newVal) => handleMetricChange(index, 'key', newVal || '')}
+              renderInput={(params) => (
+                <TextField {...params} label="欄位" />
+              )}
+              sx={{ width: 180 }}
             />
             <TextField
               label="內容"
-              value={v}
+              value={value}
               onChange={(e) => handleMetricChange(index, 'value', e.target.value)}
             />
             <IconButton onClick={() => removeMetric(index)}>
@@ -149,6 +184,7 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
         <Button onClick={addMetric} size="small">新增欄位</Button>
       </Box>
 
+      {/* 顏色選擇 */}
       <Box mt={3}>
         <Typography variant="subtitle1">顏色</Typography>
         <Autocomplete
@@ -172,6 +208,7 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
         />
       </Box>
 
+      {/* 尺寸選擇 */}
       <Box mt={3}>
         <Typography variant="subtitle1">尺寸</Typography>
         <Autocomplete

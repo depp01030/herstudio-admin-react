@@ -1,4 +1,4 @@
-import React, { useState, useRef, MouseEvent, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Product } from '@/types/product';
 import ProductCardHeader from './ProductCardHeader';
 import ProductCardInfo from './ProductCardInfo';
@@ -21,26 +21,28 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [leftSectionWidth, setLeftSectionWidth] = useState(50);
   const isDraggingRef = useRef(false);
-  const containerRef = useRef<HTMLDivElement>(null); 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const actions = useProductCardActions(product);
-  const { info, submit, deleteProduct } = actions;
+  const { info, submit, deleteProduct, image } = actions;
 
   const toggleExpand = () => setIsExpanded((prev) => !prev);
 
-  const handleSave = async () => {
-    try {
-      const saved = await submit();
-      if (onUpdate) onUpdate(saved);
-    } catch (err) {
-      console.error('儲存失敗', err);
-    }
+  useEffect(() => {
+    image.fetchImages(product.id);
+  }, [product.id, image.fetchImages]);
+
+  const handleSave = async () => { 
+    const saved = await submit();
+    if (onUpdate) onUpdate(saved);
   };
+  
 
   const handleDelete = async () => {
     await deleteProduct(product.id);
   };
 
-  const handleResizeStart = (e: MouseEvent) => {
+  const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     isDraggingRef.current = true;
 
@@ -61,13 +63,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleEnd);
   };
-
-  useEffect(() => {
-    return () => {
-      window.removeEventListener('mousemove', () => {});
-      window.removeEventListener('mouseup', () => {});
-    };
-  }, []);
 
   return (
     <div className={`product-card ${isSelected ? 'selected' : ''} ${isExpanded ? 'expanded' : ''}`}>

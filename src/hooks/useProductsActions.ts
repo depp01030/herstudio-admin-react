@@ -23,6 +23,7 @@ export function useProductActions() {
     setError(null);
     try {
       const res = await adminProductApi.getProducts({ ...filters, page, pageSize });
+      console.log('fetchProducts', res);
       setItems(res.items);
       setHasMore(res.items.length === pageSize);
     } catch (err: any) {

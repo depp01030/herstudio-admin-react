@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Product } from '@/types/product';
 import { useProductCardActions } from '@/hooks/useProductCardActions';
-import { ProductImage } from '@/types/productImage';
 
 interface ProductCardImageProps {
   product: Product;
 }
 
 const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const {
     image: {
       fetchImages,
@@ -15,19 +16,29 @@ const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
       toggleSelected,
       setMainImage,
       markForDelete,
+      addNewImage,
     },
   } = useProductCardActions(product);
 
-  const [images, setImages] = useState<ProductImage[]>([]);
+  const images = getImages(product.id);
 
   useEffect(() => {
-    fetchImages(product.id).then(() => {
-      setImages(getImages(product.id));
-    });
-  }, [product.id]);
+    const existing = getImages(product.id);
+    if (!existing || existing.length === 0) {
+      fetchImages(product.id);
+    }
+  }, [product.id, fetchImages, getImages]);
 
-  // 更新本地顯示（不同步 store，只是重設狀態）
-  const refresh = () => setImages(getImages(product.id));
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (let i = 0; i < files.length; i++) {
+      addNewImage(product.id, files[i]);
+    }
+
+    e.target.value = '';
+  };
 
   return (
     <div className="product-card-image-section">
@@ -38,85 +49,87 @@ const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
         <code>{product.itemFolder}</code>
       </div>
 
+      <div style={{ marginBottom: '1rem' }}>
+        <button onClick={() => fileInputRef.current?.click()}>匯入圖片</button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
+      </div>
+
       <div
         className="image-list"
-        style={{ display: 'flex', overflowX: 'auto', gap: '0.75rem' }}
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          maxHeight: '300px',
+          overflowY: 'auto',
+        }}
       >
-        {images.map((img) => (
-          <div
-            key={img.tempId || img.id}
-            className="image-card"
-            style={{
-              position: 'relative',
-              border: img.isMain ? '2px solid #3f51b5' : '1px solid #ccc',
-              borderRadius: '4px',
-              padding: '4px',
-              width: '120px',
-            }}
-          >
-            <img
-              src={img.url}
-              alt={img.fileName}
-              style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }}
-              onClick={() => {
-                setMainImage(product.id, img.id || img.tempId!);
-                refresh();
+        {images.map((img) => {
+          const key = img.tempId || img.id!;
+          return (
+            <div
+              key={key}
+              className="image-card"
+              style={{
+                position: 'relative',
+                border: img.isSelected ? '2px solid #3f51b5' : '1px solid #ccc',
+                borderRadius: '4px',
+                padding: '4px',
+                width: '120px',
               }}
-            />
+            >
+              <img
+                src={img.url}
+                alt={img.fileName}
+                style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }}
+                onClick={() => toggleSelected(product.id, key)}
+              />
 
-            <div style={{ marginTop: '4px', display: 'flex', gap: '4px', justifyContent: 'space-between' }}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={img.isSelected}
-                  onChange={() => {
-                    toggleSelected(product.id, img.id || img.tempId!);
-                    refresh();
+              <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <label style={{ fontSize: '12px' }}>
+                  <input
+                    type="radio"
+                    name={`main-image-${product.id}`}
+                    checked={img.isMain}
+                    onChange={() => setMainImage(product.id, key)}
+                  />{' '}
+                  主圖
+                </label>
+
+                <button
+                  onClick={() => markForDelete(product.id, key)}
+                  style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontSize: '12px' }}
+                >
+                  🗑 刪除
+                </button>
+              </div>
+
+              {img.action === 'delete' && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    background: 'rgba(244,67,54,0.9)',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    padding: '2px 4px',
+                    borderRadius: '3px',
                   }}
-                /> 選取
-              </label>
-              <button
-                onClick={() => {
-                  markForDelete(product.id, img.id || img.tempId!);
-                  refresh();
-                }}
-                style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer' }}
-              >
-                🗑
-              </button>
+                >
+                  待刪除
+                </div>
+              )}
             </div>
-
-            {img.isMain && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 2,
-                  left: 2,
-                  background: 'rgba(63,81,181,0.8)',
-                  color: 'white',
-                  fontSize: '0.75rem',
-                  padding: '2px 4px',
-                  borderRadius: '3px',
-                }}
-              >主圖</div>
-            )}
-
-            {img.action === 'delete' && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 2,
-                  right: 2,
-                  background: 'rgba(244,67,54,0.9)',
-                  color: 'white',
-                  fontSize: '0.75rem',
-                  padding: '2px 4px',
-                  borderRadius: '3px',
-                }}
-              >待刪除</div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div style={{ marginTop: '1rem' }}>

@@ -1,32 +1,5 @@
 import { API_BASE_URL } from '@/config/constants';
-
-// --------- 工具：轉換函式 ---------
-
-// camelCase ← snake_case
-const toCamelCase = (obj: any): any => {
-  if (Array.isArray(obj)) return obj.map(toCamelCase);
-  if (obj && typeof obj === 'object') {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      const camelKey = key.replace(/_([a-z])/g, (_, g) => g.toUpperCase());
-      acc[camelKey] = toCamelCase(value);
-      return acc;
-    }, {} as any);
-  }
-  return obj;
-};
-
-// snake_case ← camelCase
-const toSnakeCase = (obj: any): any => {
-  if (Array.isArray(obj)) return obj.map(toSnakeCase);
-  if (obj && typeof obj === 'object') {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-      acc[snakeKey] = toSnakeCase(value);
-      return acc;
-    }, {} as any);
-  }
-  return obj;
-};
+import caseConverter from '@/utils/caseConverter';
 
 // --------- 處理回應 ---------
 const handleResponse = async (response: Response) => {
@@ -39,7 +12,7 @@ const handleResponse = async (response: Response) => {
     }
   }
   const json = await response.json();
-  return toCamelCase(json);
+  return caseConverter.toCamelCase(json);
 };
 
 // --------- 核心 Service ---------
@@ -57,7 +30,7 @@ const apiService = {
 
   post: async <T>(endpoint: string, data: any, config?: { headers?: HeadersInit }): Promise<T> => {
     const isFormData = data instanceof FormData;
-    const body = isFormData ? data : JSON.stringify(toSnakeCase(data));
+    const body = isFormData ? data : JSON.stringify(caseConverter.toSnakeCase(data));
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
@@ -75,7 +48,7 @@ const apiService = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(toSnakeCase(data)),
+      body: JSON.stringify(caseConverter.toSnakeCase(data)),
     });
     return handleResponse(response);
   },
@@ -84,7 +57,7 @@ const apiService = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(toSnakeCase(data)),
+      body: JSON.stringify(caseConverter.toSnakeCase(data)),
     });
     return handleResponse(response);
   },

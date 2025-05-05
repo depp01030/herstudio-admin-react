@@ -36,6 +36,7 @@
 import { useCallback } from 'react';
 import useProductImageStore from '@/stores/productImageStore';
 import { ProductImage, ProductImageSubmission } from '@/types/productImage';
+import caseConverter from '@/utils/caseConverter';
 import { ImageAction } from '@/types/productImage';
 import { v4 as uuidv4 } from 'uuid';
 import adminImageApi from '@/api/admin/productImageApi';
@@ -77,21 +78,22 @@ export function useProductImageActions() {
 
   // A4. 設定主圖
   const setMainImage = (productId: number, imageId: string | number) => {
-    const current = getImages(productId);
-    current.forEach(img => {
-      if (img.isMain) {
-        updateImage(productId, img.id ?? img.tempId!, { isMain: false });
-      }
+    const images = getImages(productId);
+  
+    const updated = images.map((img) => {
+      const isTarget = img.id === imageId || img.tempId === imageId;
+      return {
+        ...img,
+        isMain: isTarget,
+        action: isTarget ? upgradeAction(img.action) : img.isMain ? upgradeAction(img.action) : img.action,
+      };
     });
-
-    const target = current.find(img => img.id === imageId || img.tempId === imageId);
-    if (target) {
-      updateImage(productId, imageId, {
-        isMain: true,
-        action: upgradeAction(target.action),
-      });
-    }
+  
+    setImages(productId, updated);
   };
+  
+  
+  
 
   // A5. 切換是否選取
   const toggleSelected = (productId: number, imageId: string | number) => {
@@ -146,22 +148,27 @@ export function useProductImageActions() {
       if (img.action === 'new' && img.file && img.tempId) {
         formData.append(`file_${img.tempId}`, img.file);
       }
-    }
-
+    } 
+    
     formData.append('product_id', String(productId));
-    formData.append('images', JSON.stringify(submission));
+    formData.append('images', JSON.stringify(caseConverter.toSnakeCase(submission))); // ✅ 修正點
     return formData;
   };
 
-  // A1. 儲存圖片變更（包含新增、更新、刪除）
   const saveImageChanges = async (productId: number) => {
     const formData = buildImageFormData(productId);
     const response = await adminImageApi.saveImageChanges(formData);
     const updates = response.images;
+  
+    // 所有當前圖片
     const current = getImages(productId);
-
-    updates.forEach(update => {
-      updateImage(productId, update.tempId, {
+  
+    // 先依照 tempId 或 id 更新原本的圖片，避免留下重複的 temp 圖片
+    updates.forEach((update) => {
+      const key = update.tempId ?? update.id;
+      if (!key) return;
+  
+      updateImage(productId, key, {
         id: update.id,
         productId,
         fileName: update.fileName,
@@ -171,6 +178,21 @@ export function useProductImageActions() {
         action: 'original',
       });
     });
+  
+    // 🔸 移除已刪除的圖片
+    const final = getImages(productId).filter((img) => img.action !== 'delete');
+  
+    // ✅ 更新 store
+    setImages(productId, final);
+  };
+  
+  
+  // 新增：取得主圖或第一張圖片的 URL（給 header 顯示預覽圖）
+  const getPreviewImageUrl = (productId: number): string | undefined => {
+    const images = getImages(productId);
+    const main = images.find((img) => img.isMain && img.action !== 'delete');
+    const first = images.find((img) => img.action !== 'delete');
+    return main?.url || first?.url;
   };
 
   return {
@@ -183,5 +205,6 @@ export function useProductImageActions() {
     buildImageSubmission,
     buildImageFormData,
     saveImageChanges, // ✅ A1 改名並加入導出
+    getPreviewImageUrl, // ✅ 導出這個
   };
 }

@@ -6,18 +6,18 @@
 
 🎯 **目標：讓目前的基本流程可以正常運作**
 
-1. 修復圖片上傳 bug
+1. 修復圖片上傳 bug V
    - metadata 傳不到後端（FormData 組裝問題）
 
-2. 驗證 A1 行為是否正常
+2. 驗證 A1 行為是否正常 V
    - `action: new / update / delete` 正確儲存
    - 回傳 `ProcessedImageInfo` 正確更新前端
 
-3. 修復 `sizeMetrics` 資料格式錯誤
+3. 修復 `sizeMetrics` 資料格式錯誤 V
    - 前端傳入格式應為 `Record<string, string>`
    - 後端 schema 對應修改
 
-4. 確認 `CardHeader` 能載入主圖（mainImage）
+4. 確認 `CardHeader` 能載入主圖（mainImage）V
 
 ---
 
@@ -25,11 +25,11 @@
 
 🎯 **目標：讓找款師可操作匯入圖片，並預覽與標註**
 
-5. 實作圖片匯入（基本版）
+5. 實作圖片匯入（基本版）V
    - 使用 `<input type="file" multiple>` 選擇圖片
    - 匯入後加入 `imageStore`，可預覽
 
-6. 支援主圖勾選、是否上傳選取
+6. 支援主圖勾選、是否上傳選取 V
    - `is_main`, `is_selected` 編輯功能
    - 匯入後可直接操作並儲存
 
