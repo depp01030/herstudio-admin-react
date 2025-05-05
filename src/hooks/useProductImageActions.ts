@@ -1,33 +1,63 @@
+// src/hooks/useProductImageActions.ts
+
+/**
+ * 📦 useProductImageActions.ts
+ * 提供圖片模組的所有操作與狀態管理。
+ * 
+ * ✅ 支援的圖片請求操作（按下儲存時會觸發）：
+ *
+ * A1. saveImageChanges(productId)
+ *    - 傳入：FormData { product_id, images (json[]), file_tempId }
+ *    - 回傳：{ images: ProcessedImageInfo[], message: {}, error: {} }
+ *    - 目的：批次處理圖片的新增 / 更新 / 刪除行為
+ * 
+ * A2. fetchImages(productId)
+ *    - 傳入：商品 ID
+ *    - 回傳：目前使用 mock image
+ *    - 目的：模擬從後端載入指定商品的圖片
+ * 
+ * A3. addNewImage(productId, file)
+ *    - 傳入：商品 ID + 使用者上傳的 File
+ *    - 回傳：加入到 imageStore（含 URL.createObjectURL 預覽）
+ * 
+ * A4. setMainImage(productId, imageId)
+ *    - 傳入：商品 ID + 圖片 ID 或 tempId
+ *    - 回傳：更新 store 中對應圖片的 isMain 為 true
+ * 
+ * A5. toggleSelected(productId, imageId)
+ *    - 傳入：商品 ID + 圖片 ID 或 tempId
+ *    - 回傳：更新 store 中對應圖片的 isSelected 狀態
+ * 
+ * A6. markForDelete(productId, imageId)
+ *    - 傳入：商品 ID + 圖片 ID 或 tempId
+ *    - 回傳：將該圖片標記為刪除（action = 'delete'）
+ */
+
 import { useCallback } from 'react';
 import useProductImageStore from '@/stores/productImageStore';
 import { ProductImage, ProductImageSubmission } from '@/types/productImage';
 import { ImageAction } from '@/types/productImage';
 import { v4 as uuidv4 } from 'uuid';
+import adminImageApi from '@/api/admin/productImageApi';
 
-// ✅ 封裝轉換邏輯：如果是 original 圖片，一旦被操作就轉成 update
 const upgradeAction = (action: ImageAction): ImageAction =>
   action === 'original' ? 'update' : action;
 
-/**
- * 提供圖片相關的狀態管理與提交處理函式
- * 包含：取得、設定主圖、切換選取、標記刪除、新增圖片、打包 FormData 等
- */
 export function useProductImageActions() {
-  const { getImages, setImages, getMockImages } = useProductImageStore();
+  const { getImages, setImages, updateImage, getMockImages } = useProductImageStore();
 
-  /**
-   * 取得 mock 圖片資料，模擬從後端取得的圖片（開發用）
-   */
+  // A2. 載入圖片（mock）
+  // 替換原本只吃 mock 的 fetchImages
   const fetchImages = useCallback(async (productId: number) => {
-    const mockImages = getMockImages(productId);
-    setImages(productId, mockImages);
-  }, [getMockImages, setImages]);
+    const images = await adminImageApi.getProductImages(productId); // A2
+    setImages(productId, images.map((img) => ({
+      ...img,
+      productId,
+      action: 'original', // 從後端來的都當作原圖
+    })));
+  }, [setImages]);
 
-  /**
-   * 使用者上傳新圖片時，建立圖片對象並加到 store 中
-   * - 會產生唯一 tempId
-   * - 產生預覽用的 URL
-   */
+  // A3. 新增圖片（user 上傳）
   const addNewImage = (productId: number, file: File) => {
     const tempId = uuidv4();
     const newImage: ProductImage = {
@@ -45,60 +75,44 @@ export function useProductImageActions() {
     setImages(productId, [...current, newImage]);
   };
 
-  /**
-   * 設定某張圖為主圖（只能有一張 isMain = true）
-   * - 如果被設為主圖，且原本是 original，則改為 update
-   */
+  // A4. 設定主圖
   const setMainImage = (productId: number, imageId: string | number) => {
     const current = getImages(productId);
-    const updated = current.map(img => {
-      const isTarget = img.id === imageId || img.tempId === imageId;
-      return {
-        ...img,
-        isMain: isTarget,
-        action: isTarget ? upgradeAction(img.action) : img.action,
-      };
+    current.forEach(img => {
+      if (img.isMain) {
+        updateImage(productId, img.id ?? img.tempId!, { isMain: false });
+      }
     });
-    setImages(productId, updated);
+
+    const target = current.find(img => img.id === imageId || img.tempId === imageId);
+    if (target) {
+      updateImage(productId, imageId, {
+        isMain: true,
+        action: upgradeAction(target.action),
+      });
+    }
   };
 
-  /**
-   * 切換是否選取上傳（checkbox 控制）
-   * - original 圖片若變動也會升級為 update
-   */
+  // A5. 切換是否選取
   const toggleSelected = (productId: number, imageId: string | number) => {
     const current = getImages(productId);
-    const updated = current.map(img => {
-      const isTarget = img.id === imageId || img.tempId === imageId;
-      return isTarget
-        ? {
-            ...img,
-            isSelected: !img.isSelected,
-            action: upgradeAction(img.action),
-          }
-        : img;
+    const target = current.find(img => img.id === imageId || img.tempId === imageId);
+    if (!target) return;
+
+    updateImage(productId, imageId, {
+      isSelected: !target.isSelected,
+      action: upgradeAction(target.action),
     });
-    setImages(productId, updated);
   };
 
-  /**
-   * 標記刪除圖片（將 action 設為 delete）
-   * - 原圖或新圖皆可標記刪除
-   */
+  // A6. 標記刪除
   const markForDelete = (productId: number, imageId: string | number) => {
-    const current = getImages(productId);
-    const updated = current.map(img =>
-      img.id === imageId || img.tempId === imageId
-        ? { ...img, action: 'delete' as ImageAction }
-        : img
-    );
-    setImages(productId, updated);
+    updateImage(productId, imageId, {
+      action: 'delete',
+    });
   };
 
-  /**
-   * 產生送出用的圖片資料 JSON（不包含檔案）
-   * - 只保留 new / update / delete 圖片（略過 original）
-   */
+  // 組出 JSON metadata 陣列
   const buildImageSubmission = (productId: number): ProductImageSubmission[] => {
     const images = getImages(productId);
     return images
@@ -112,21 +126,15 @@ export function useProductImageActions() {
       }));
   };
 
-  /**
-   * 建立 FormData，包含：
-   * - images（JSON.stringify(ProductImageSubmission[])）
-   * - file_tempId（每張圖片的 File）
-   */
+  // 封裝要送出的 FormData（含 metadata 與圖片檔案）
   const buildImageFormData = (productId: number): FormData => {
     const images = getImages(productId);
     const formData = new FormData();
-
     const submission: ProductImageSubmission[] = [];
 
     for (const img of images) {
       if (img.action === 'original') continue;
 
-      // 加入 metadata
       submission.push({
         id: img.id,
         tempId: img.tempId,
@@ -135,19 +143,38 @@ export function useProductImageActions() {
         isSelected: img.isSelected,
       });
 
-      // 加入圖片檔案
       if (img.action === 'new' && img.file && img.tempId) {
         formData.append(`file_${img.tempId}`, img.file);
       }
     }
 
+    formData.append('product_id', String(productId));
     formData.append('images', JSON.stringify(submission));
     return formData;
   };
 
-  return {
+  // A1. 儲存圖片變更（包含新增、更新、刪除）
+  const saveImageChanges = async (productId: number) => {
+    const formData = buildImageFormData(productId);
+    const response = await adminImageApi.saveImageChanges(formData);
+    const updates = response.images;
+    const current = getImages(productId);
 
-    getImages, // ✅ 新增這行
+    updates.forEach(update => {
+      updateImage(productId, update.tempId, {
+        id: update.id,
+        productId,
+        fileName: update.fileName,
+        url: update.url,
+        isMain: update.isMain,
+        isSelected: update.isSelected,
+        action: 'original',
+      });
+    });
+  };
+
+  return {
+    getImages,
     fetchImages,
     addNewImage,
     setMainImage,
@@ -155,5 +182,6 @@ export function useProductImageActions() {
     markForDelete,
     buildImageSubmission,
     buildImageFormData,
+    saveImageChanges, // ✅ A1 改名並加入導出
   };
 }

@@ -1,5 +1,3 @@
-// src/components/product/ProductCardInfo.tsx
-
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -163,9 +161,10 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
             onChange('colors', newValue);
           }}
           renderTags={(value: string[], getTagProps) =>
-            value.map((option, index) => (
-              <Chip key={option} label={option} {...getTagProps({ index })} />
-            ))
+            value.map((option, index) => {
+              const { key: _ignoredKey, ...rest } = getTagProps({ index });
+              return <Chip key={option} label={option} {...rest} />;
+            })
           }
           renderInput={(params) => (
             <TextField {...params} variant="outlined" placeholder="輸入或選擇顏色" />
@@ -185,9 +184,10 @@ const ProductCardInfo: React.FC<ProductCardInfoProps> = ({ product, onChange }) 
             onChange('sizes', newValue);
           }}
           renderTags={(value: string[], getTagProps) =>
-            value.map((option, index) => (
-              <Chip key={option} label={option} {...getTagProps({ index })} />
-            ))
+            value.map((option, index) => {
+              const { key: _ignoredKey, ...rest } = getTagProps({ index });
+              return <Chip key={option} label={option} {...rest} />;
+            })
           }
           renderInput={(params) => (
             <TextField {...params} variant="outlined" placeholder="輸入或選擇尺寸" />

@@ -1,13 +1,13 @@
-// src/stores/productImageStore.ts
-
 import { create } from 'zustand';
 import { ProductImage } from '@/types/productImage';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ProductImageStore {
   imagesByProductId: Record<number, ProductImage[]>;
+
   setImages: (productId: number, images: ProductImage[]) => void;
   getImages: (productId: number) => ProductImage[];
+  updateImage: (productId: number, imageId: string | number, patch: Partial<ProductImage>) => void;
   getMockImages: (productId: number) => ProductImage[];
 }
 
@@ -27,6 +27,29 @@ const useProductImageStore = create<ProductImageStore>((set, get) => ({
     return get().imagesByProductId[productId] || [];
   },
 
+  updateImage(productId, imageId, patch) {
+    set((state) => {
+      const images = state.imagesByProductId[productId] || [];
+      const updated = images.map((img) => {
+        const isMatch = img.id === imageId || img.tempId === imageId;
+        if (!isMatch) return img;
+        return {
+          ...img,
+          ...patch,
+          tempId: undefined,
+          file: undefined,
+        };
+      });
+
+      return {
+        imagesByProductId: {
+          ...state.imagesByProductId,
+          [productId]: updated,
+        },
+      };
+    });
+  },
+
   getMockImages(productId) {
     productId = 0;
     const base = `/images/sample/${productId}`;
@@ -36,7 +59,7 @@ const useProductImageStore = create<ProductImageStore>((set, get) => ({
         tempId: uuidv4(),
         productId,
         fileName: 'main.jpg',
-        url: `${base}/main.jpg`,
+        url: `http://localhost:8000/images/stall3/product1/QrCode.jpg`,
         file: undefined,
         isMain: true,
         isSelected: true,
