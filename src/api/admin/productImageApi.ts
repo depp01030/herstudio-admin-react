@@ -1,7 +1,6 @@
-// src/api/admin/productImageApi.ts
-
 import apiService from '@/api/apiService';
 import { ProcessedImageInfo } from '@/types/productImage';
+import { ADMIN_IMAGE_ROUTE } from '@/config/constants';
 
 /**
  * 💾 A1 - 儲存圖片編輯變更（新增 / 更新 / 刪除）
@@ -14,7 +13,7 @@ const saveImageChanges = (form: FormData) =>
     images: ProcessedImageInfo[];
     message?: any;
     error?: any;
-  }>('/api/admin/product-image/process', form);
+  }>(`${ADMIN_IMAGE_ROUTE}/process`, form);
 
 /**
  * 📦 A2 - 查詢某個商品的所有圖片資訊
@@ -22,7 +21,7 @@ const saveImageChanges = (form: FormData) =>
  * 回傳：ProcessedImageInfo[]
  */
 const getProductImages = (productId: number) =>
-  apiService.get<ProcessedImageInfo[]>(`/api/admin/product-image/product/${productId}`);
+  apiService.get<ProcessedImageInfo[]>(`${ADMIN_IMAGE_ROUTE}/product/${productId}`);
 
 /**
  * 🖼️ A3 - 上傳單張圖片（預覽用）
@@ -31,7 +30,7 @@ const getProductImages = (productId: number) =>
  * 回傳：ProcessedImageInfo
  */
 const uploadSingleImage = (form: FormData) =>
-  apiService.post<ProcessedImageInfo>('/api/admin/product-image/upload', form);
+  apiService.post<ProcessedImageInfo>(`${ADMIN_IMAGE_ROUTE}/upload`, form);
 
 /**
  * 🔍 A4 - 根據圖片 ID 查詢單張圖片
@@ -39,7 +38,7 @@ const uploadSingleImage = (form: FormData) =>
  * 回傳：ProcessedImageInfo
  */
 const getImageById = (imageId: number) =>
-  apiService.get<ProcessedImageInfo>(`/api/admin/product-image/${imageId}`);
+  apiService.get<ProcessedImageInfo>(`${ADMIN_IMAGE_ROUTE}/${imageId}`);
 
 /**
  * ➕ A5 - 新增圖片 metadata（不含圖片檔案）
@@ -48,7 +47,7 @@ const getImageById = (imageId: number) =>
  * 回傳：ProcessedImageInfo
  */
 const addImageMeta = (payload: Partial<ProcessedImageInfo>) =>
-  apiService.post<ProcessedImageInfo>('/api/admin/product-image/', payload);
+  apiService.post<ProcessedImageInfo>(`${ADMIN_IMAGE_ROUTE}/`, payload);
 
 /**
  * ✏️ A6 - 更新圖片 metadata
@@ -57,7 +56,7 @@ const addImageMeta = (payload: Partial<ProcessedImageInfo>) =>
  * 回傳：ProcessedImageInfo
  */
 const updateImageMeta = (imageId: number, patch: Partial<ProcessedImageInfo>) =>
-  apiService.patch<ProcessedImageInfo>(`/api/admin/product-image/${imageId}`, patch);
+  apiService.patch<ProcessedImageInfo>(`${ADMIN_IMAGE_ROUTE}/${imageId}`, patch);
 
 const adminImageApi = {
   saveImageChanges,

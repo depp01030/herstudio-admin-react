@@ -2,11 +2,10 @@
 import apiService from '../apiService';
 import { Product, ProductQueryParams } from '@/types/product';
 import { productTypeLabelMap } from '@/config/productFieldDefaults';
+import { ADMIN_PRODUCT_ROUTE, PRODUCT_CATEGORY_ROUTE } from '@/config/constants';
 
 import camelcaseKeys from 'camelcase-keys';
 import snakecaseKeys from 'snakecase-keys';
-
-const ADMIN_PRODUCT_ROUTE = '/api/admin/products';
 
 const adminProductApi = {
   getProducts: async (params: ProductQueryParams = {}) => {
@@ -51,7 +50,7 @@ const adminProductApi = {
 
   getCategories: async () => {
     try {
-      const categories = await apiService.get<string[]>('/product-categories');
+      const categories = await apiService.get<string[]>(PRODUCT_CATEGORY_ROUTE);
       return categories;
     } catch (error) {
       console.warn('無法從 API 獲取產品類別，使用預設類別列表', error);
