@@ -130,6 +130,7 @@ export function useProductImageActions() {
     const formData = buildImageFormData(productId);
     const response = await adminImageApi.saveImageChanges(formData);
     const updates = response.images;
+    console.log('saveImageChanges', updates);
 
     for (const update of updates) {
       const key = update.tempId ?? update.id;
