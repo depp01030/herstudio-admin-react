@@ -23,7 +23,11 @@ const handleResponse = async (response: Response) => {
   }
 };
 
-// ✅ 預設所有 fetch 都帶上 cookie
+// ✅ 預設所有 fetch 都帶上 cookie 和 ngrok header
+const DEFAULT_HEADERS: HeadersInit = {
+  'ngrok-skip-browser-warning': 'true',
+};
+
 const DEFAULT_FETCH_OPTIONS: RequestInit = {
   credentials: 'include',
 };
@@ -39,7 +43,10 @@ const apiService = {
     const response = await fetch(`${API_BASE_URL}${endpoint}${queryString}`, {
       ...DEFAULT_FETCH_OPTIONS,
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...DEFAULT_HEADERS,
+      },
     });
     return handleResponse(response);
   },
@@ -56,9 +63,10 @@ const apiService = {
       ...DEFAULT_FETCH_OPTIONS,
       method: 'POST',
       headers: isFormData
-        ? undefined
+        ? { ...DEFAULT_HEADERS }
         : {
             'Content-Type': 'application/json',
+            ...DEFAULT_HEADERS,
             ...(config.headers || {}),
           },
       body,
@@ -71,7 +79,10 @@ const apiService = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...DEFAULT_FETCH_OPTIONS,
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...DEFAULT_HEADERS,
+      },
       body: JSON.stringify(caseConverter.toSnakeCase(data)),
     });
     return handleResponse(response);
@@ -81,7 +92,10 @@ const apiService = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...DEFAULT_FETCH_OPTIONS,
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...DEFAULT_HEADERS,
+      },
       body: JSON.stringify(caseConverter.toSnakeCase(data)),
     });
     return handleResponse(response);
@@ -91,7 +105,10 @@ const apiService = {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...DEFAULT_FETCH_OPTIONS,
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...DEFAULT_HEADERS,
+      },
     });
     return handleResponse(response);
   },
