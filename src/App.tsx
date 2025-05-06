@@ -1,11 +1,10 @@
-// App.tsx
 import { Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Suspense, lazy } from 'react';
 import { ROUTES } from './config/constants';
 import './styles/App.css';
 import { useAuthStore } from '@/stores/authStore';
-import RequireAuth from '@/routes/RequireAuth'; // ✅ 加入 Route 守門人
+import RequireAuth from '@/routes/RequireAuth';
 
 // 懶加載頁面組件
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
@@ -15,12 +14,17 @@ const LoginPage = lazy(() => import('@/pages/LoginPage'));
 
 // 載入中顯示的組件
 const Loading = () => <div className="loading">載入中...</div>;
+const Initializing = () => <div className="loading">驗證身份中，請稍候...</div>;
 
 function App() {
+  const { initFromLocal, isInitialized } = useAuthStore();
+
   useEffect(() => {
-    useAuthStore.getState().initFromServer();
+    initFromLocal(); // ✅ Bearer token 模式初始化
   }, []);
-  
+
+  if (!isInitialized) return <Initializing />; // ✅ 尚未初始化完成前先不渲染其他
+
   return (
     <div className="app">
       <Suspense fallback={<Loading />}>

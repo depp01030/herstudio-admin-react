@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '@/config/constants';
 import caseConverter from '@/utils/caseConverter';
+import { useAuthStore } from '@/stores/authStore';
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -23,13 +24,13 @@ const handleResponse = async (response: Response) => {
   }
 };
 
-// ✅ 預設所有 fetch 都帶上 cookie 和 ngrok header
-const DEFAULT_HEADERS: HeadersInit = {
-  'ngrok-skip-browser-warning': 'true',
-};
-
-const DEFAULT_FETCH_OPTIONS: RequestInit = {
-  credentials: 'include',
+// ✅ 自動加 Authorization header
+const getAuthHeaders = (): HeadersInit => {
+  const token = useAuthStore.getState().accessToken;
+  return {
+    'ngrok-skip-browser-warning': 'true',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 };
 
 const apiService = {
@@ -41,11 +42,10 @@ const apiService = {
       ? '?' + new URLSearchParams(config.params as any).toString()
       : '';
     const response = await fetch(`${API_BASE_URL}${endpoint}${queryString}`, {
-      ...DEFAULT_FETCH_OPTIONS,
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        ...DEFAULT_HEADERS,
+        ...getAuthHeaders(),
       },
     });
     return handleResponse(response);
@@ -60,13 +60,14 @@ const apiService = {
     const body = isFormData ? data : JSON.stringify(caseConverter.toSnakeCase(data));
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...DEFAULT_FETCH_OPTIONS,
       method: 'POST',
       headers: isFormData
-        ? { ...DEFAULT_HEADERS }
+        ? {
+            ...getAuthHeaders(),
+          }
         : {
             'Content-Type': 'application/json',
-            ...DEFAULT_HEADERS,
+            ...getAuthHeaders(),
             ...(config.headers || {}),
           },
       body,
@@ -77,11 +78,10 @@ const apiService = {
 
   put: async <T>(endpoint: string, data = {}): Promise<T> => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...DEFAULT_FETCH_OPTIONS,
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        ...DEFAULT_HEADERS,
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(caseConverter.toSnakeCase(data)),
     });
@@ -90,11 +90,10 @@ const apiService = {
 
   patch: async <T>(endpoint: string, data = {}): Promise<T> => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...DEFAULT_FETCH_OPTIONS,
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        ...DEFAULT_HEADERS,
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(caseConverter.toSnakeCase(data)),
     });
@@ -103,11 +102,10 @@ const apiService = {
 
   delete: async <T>(endpoint: string): Promise<T> => {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...DEFAULT_FETCH_OPTIONS,
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        ...DEFAULT_HEADERS,
+        ...getAuthHeaders(),
       },
     });
     return handleResponse(response);

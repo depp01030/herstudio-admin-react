@@ -15,7 +15,7 @@ import { ROUTES } from '@/config/constants';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const setAuth = useAuthStore((state) => state.setAuth); // ✅ 改為取得 setAuth
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -27,8 +27,12 @@ const LoginPage: React.FC = () => {
     setErrorMsg('');
 
     try {
-      const { role } = await loginWithCredentials(username, password); // ✅ no token
-      login(role); // ✅ only role
+      // ✅ 接收 accessToken + role
+      const { accessToken, role } = await loginWithCredentials(username, password);
+
+      // ✅ 存入 store 並寫入 localStorage
+      setAuth(accessToken, role);
+
       navigate(ROUTES.PRODUCTS);
     } catch (err: any) {
       setErrorMsg(err?.message || '登入失敗，請確認帳密');
@@ -38,7 +42,7 @@ const LoginPage: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // ⛔ 防止頁面重新整理
+    e.preventDefault();
     await handleLogin();
   };
 
