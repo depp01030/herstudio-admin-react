@@ -9,11 +9,7 @@ import RequireAuth from '@/routes/RequireAuth'; // ✅ 加入 Route 守門人
 
 // 懶加載頁面組件
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
-const ProductList = lazy(() => import('@/pages/products/ProductList'));
-const ProductDetail = lazy(() => import('@/pages/products/ProductDetail'));
-const DebugPage = lazy(() => import('@/pages/debug/DebugPage'));
-const ProductNew = lazy(() => import('@/pages/products/ProductNew'));
-const ProductEdit = lazy(() => import('@/pages/products/ProductEdit'));
+const ProductList = lazy(() => import('@/pages/products/ProductList')); 
 const Settings = lazy(() => import('@/pages/settings/Settings'));
 const LoginPage = lazy(() => import('@/pages/LoginPage'));
 
@@ -48,40 +44,7 @@ function App() {
                 <ProductList />
               </RequireAuth>
             }
-          />
-          <Route
-            path={ROUTES.PRODUCT_DETAIL}
-            element={
-              <RequireAuth>
-                <ProductDetail />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path={ROUTES._DEBUG}
-            element={
-              <RequireAuth>
-                <DebugPage />
-              </RequireAuth>
-            }
-          />
-          {/* 之後要啟用的也包進去 */}
-          {/* <Route
-            path={ROUTES.PRODUCT_NEW}
-            element={
-              <RequireAuth>
-                <ProductNew />
-              </RequireAuth>
-            }
-          /> */}
-          <Route
-            path={ROUTES.PRODUCT_EDIT}
-            element={
-              <RequireAuth>
-                <ProductEdit />
-              </RequireAuth>
-            }
-          />
+          />  
           <Route
             path={ROUTES.SETTINGS}
             element={

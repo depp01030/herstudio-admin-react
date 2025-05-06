@@ -14,11 +14,8 @@ export const ADMIN_IMAGE_ROUTE = '/api/admin/product-image';
 // === 前端路由常數 ===
 export const ROUTES = {
   LOGIN: '/login',
-  DASHBOARD: '/',
-  _DEBUG: '/admin/debug',
-  PRODUCTS: '/products',
-  PRODUCT_DETAIL: '/products/:id',
-  PRODUCT_EDIT: '/products/:id/edit',
+  DASHBOARD: '/', 
+  PRODUCTS: '/products', 
   SETTINGS: '/settings',
 };
 
