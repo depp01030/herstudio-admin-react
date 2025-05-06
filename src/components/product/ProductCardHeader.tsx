@@ -12,6 +12,7 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useProductImageActions } from '@/hooks/useProductImageActions';
 
+import { useAuthStore } from '@/stores/authStore'; // ✅ 引入 authStore
 interface ProductCardHeaderProps {
   product: Product;
   isSelected?: boolean;
@@ -33,14 +34,15 @@ const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
   onSave,
   onDelete,
 }) => {
-  const { getImages, getPreviewImageUrl } = useProductImageActions();
-  const images = getImages(product.id);
+  const { getImagesByProductId, getPreviewImageUrl } = useProductImageActions();
+  const images = getImagesByProductId(product.id);
   const previewImageUrl = getPreviewImageUrl(product.id);
   const isImageLoading = images.length === 0;
 
   const [saving, setSaving] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(true);
+  const { hasPermission } = useAuthStore(); // ✅ 權限函式
 
   const handleSaveClick = async () => {
 
@@ -151,32 +153,33 @@ const ProductCardHeader: React.FC<ProductCardHeaderProps> = ({
           </Grid>
 
           <Grid>
-            <Stack direction="row" spacing={1} onClick={(e) => e.stopPropagation()}>
-              {onSave && (
-                <Button
-                  variant="contained"
-                  size="small"
-                  onClick={handleSaveClick}
-                  disabled={saving}
-                  startIcon={saving ? <CircularProgress size={16} /> : null}
-                >
-                  {saving ? '儲存中...' : '儲存'}
-                </Button>
-              )}
-              {onDelete && (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  color="error"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete();
-                  }}
-                >
-                  刪除
-                </Button>
-              )}
-            </Stack>
+          <Stack direction="row" spacing={1} onClick={(e) => e.stopPropagation()}>
+            {hasPermission('canEdit') && onSave && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleSaveClick}
+                disabled={saving}
+                startIcon={saving ? <CircularProgress size={16} /> : null}
+              >
+                {saving ? '儲存中...' : '儲存'}
+              </Button>
+            )}
+            {hasPermission('canDelete') && onDelete && (
+              <Button
+                variant="outlined"
+                size="small"
+                color="error"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete();
+                }}
+              >
+                刪除
+              </Button>
+            )}
+          </Stack>
+
           </Grid>
         </Grid>
 

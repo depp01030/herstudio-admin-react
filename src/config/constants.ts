@@ -8,10 +8,11 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0
 
 /**
  * 路由路徑常數
- */
+ */ 
 export const ROUTES = {
+  LOGIN: '/login',  
   DASHBOARD: '/',
-  _DEBUG: '/debug',
+  _DEBUG: '/admin/debug',
   PRODUCTS: '/products',
   PRODUCT_DETAIL: '/products/:id', 
   PRODUCT_EDIT: '/products/:id/edit',

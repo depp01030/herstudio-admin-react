@@ -1,7 +1,11 @@
+// App.tsx
 import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Suspense, lazy } from 'react';
 import { ROUTES } from './config/constants';
 import './styles/App.css';
+import { useAuthStore } from '@/stores/authStore';
+import RequireAuth from '@/routes/RequireAuth'; // ✅ 加入 Route 守門人
 
 // 懶加載頁面組件
 const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard'));
@@ -11,22 +15,81 @@ const DebugPage = lazy(() => import('@/pages/debug/DebugPage'));
 const ProductNew = lazy(() => import('@/pages/products/ProductNew'));
 const ProductEdit = lazy(() => import('@/pages/products/ProductEdit'));
 const Settings = lazy(() => import('@/pages/settings/Settings'));
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
 
 // 載入中顯示的組件
 const Loading = () => <div className="loading">載入中...</div>;
 
 function App() {
+  useEffect(() => {
+    useAuthStore.getState().initFromServer();
+  }, []);
+  
   return (
     <div className="app">
       <Suspense fallback={<Loading />}>
         <Routes>
-          <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
-          <Route path={ROUTES.PRODUCTS} element={<ProductList />} />
-          <Route path={ROUTES.PRODUCT_DETAIL} element={<ProductDetail />} />
-          <Route path={ROUTES._DEBUG} element={<DebugPage />} />
-          {/* <Route path={ROUTES.PRODUCT_NEW} element={<ProductNew />} /> */}
-          <Route path={ROUTES.PRODUCT_EDIT} element={<ProductEdit />} />
-          <Route path={ROUTES.SETTINGS} element={<Settings />} />
+          {/* 不需登入可訪問 */}
+          <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+
+          {/* 需登入才能訪問的頁面 */}
+          <Route
+            path={ROUTES.DASHBOARD}
+            element={
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path={ROUTES.PRODUCTS}
+            element={
+              <RequireAuth>
+                <ProductList />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path={ROUTES.PRODUCT_DETAIL}
+            element={
+              <RequireAuth>
+                <ProductDetail />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path={ROUTES._DEBUG}
+            element={
+              <RequireAuth>
+                <DebugPage />
+              </RequireAuth>
+            }
+          />
+          {/* 之後要啟用的也包進去 */}
+          {/* <Route
+            path={ROUTES.PRODUCT_NEW}
+            element={
+              <RequireAuth>
+                <ProductNew />
+              </RequireAuth>
+            }
+          /> */}
+          <Route
+            path={ROUTES.PRODUCT_EDIT}
+            element={
+              <RequireAuth>
+                <ProductEdit />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path={ROUTES.SETTINGS}
+            element={
+              <RequireAuth>
+                <Settings />
+              </RequireAuth>
+            }
+          />
         </Routes>
       </Suspense>
     </div>

@@ -1,3 +1,4 @@
+// src/api/admin/productApi.ts
 import apiService from '../apiService';
 import { Product, ProductQueryParams } from '@/types/product';
 import { productTypeLabelMap } from '@/config/productFieldDefaults';

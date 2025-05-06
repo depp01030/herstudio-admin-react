@@ -1,3 +1,4 @@
+// src/api/apiService.ts
 import { API_BASE_URL } from '@/config/constants';
 import caseConverter from '@/utils/caseConverter';
 
@@ -11,33 +12,50 @@ const handleResponse = async (response: Response) => {
       throw new Error(`API 請求失敗: ${response.status} ${response.statusText}`);
     }
   }
-  const json = await response.json();
-  return caseConverter.toCamelCase(json);
+
+  const text = await response.text();
+  if (!text) return {}; // ✅ 處理 204 空 body
+
+  try {
+    const json = JSON.parse(text);
+    return caseConverter.toCamelCase(json);
+  } catch (e) {
+    console.error('❌ JSON parse 錯誤：', e);
+    throw new Error('API 回傳格式錯誤');
+  }
 };
 
 // --------- 核心 Service ---------
 const apiService = {
-  get: async <T>(endpoint: string, config: { params?: Record<string, any> } = {}): Promise<T> => {
+  get: async <T>(endpoint: string, config: { params?: Record<string, any>; withCredentials?: boolean } = {}): Promise<T> => {
     const queryString = config.params
       ? '?' + new URLSearchParams(config.params as any).toString()
       : '';
     const response = await fetch(`${API_BASE_URL}${endpoint}${queryString}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
+      credentials: config.withCredentials ? 'include' : 'same-origin',
     });
     return handleResponse(response);
   },
 
-  post: async <T>(endpoint: string, data: any, config?: { headers?: HeadersInit }): Promise<T> => {
+  post: async <T>(
+    endpoint: string,
+    data: any,
+    config: { headers?: HeadersInit; withCredentials?: boolean } = {}
+  ): Promise<T> => {
     const isFormData = data instanceof FormData;
     const body = isFormData ? data : JSON.stringify(caseConverter.toSnakeCase(data));
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: isFormData ? undefined : {
-        'Content-Type': 'application/json',
-        ...(config?.headers || {}),
-      },
+      headers: isFormData
+        ? undefined
+        : {
+            'Content-Type': 'application/json',
+            ...(config.headers || {}),
+          },
+      credentials: config.withCredentials ? 'include' : 'same-origin',
       body,
     });
 

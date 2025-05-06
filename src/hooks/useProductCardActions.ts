@@ -5,19 +5,25 @@ import adminProductApi from '@/api/admin/productApi';
 
 import { useProductCardInfoActions } from './useProductCardInfoActions';
 import { useProductImageActions } from './useProductImageActions';
-import { getEmptyProduct } from '@/utils/productUtils'; // 新增
+import { getEmptyProduct } from '@/utils/productUtils';
 
 export function useProductCardActions(initial?: Product) {
-  const { setItems, items, addProduct, removeItemById } = useProductStore();
+  const {
+    getAllProducts,
+    addProduct,
+    removeProduct,
+    appendProducts,
+  } = useProductStore();
 
   const info = useProductCardInfoActions(initial ?? getEmptyProduct());
   const {
-    getImages,
+    getImagesByProductId,
     fetchImages,
     addNewImage,
     setMainImage,
     toggleSelected,
     markForDelete,
+    rebindImageProductId,
     buildImageFormData,
     buildImageSubmission,
     saveImageChanges,
@@ -25,55 +31,77 @@ export function useProductCardActions(initial?: Product) {
   } = useProductImageActions();
 
   const submit = useCallback(async () => {
-    try { 
-      let current = info.getCurrent();
-      let savedProduct = current;
-      console.log('🔍 送出時 sizeMetrics:', current.sizeMetrics);
+    try {
+      const current = info.getCurrent();
+      if (!current) throw new Error('找不到目前編輯中的商品');
   
-      if (!current.id) {
+      let savedProduct: Product;
+  
+      if (current.id === -1) {
         const created = await adminProductApi.createProduct(current);
         savedProduct = created;
         info.setProduct(created);
+        rebindImageProductId(-1, created.id);
+        useProductStore.getState().rebindProductId(-1, created.id); // ✅ 核心修正
       } else {
         const updated = await adminProductApi.updateProduct(current.id, current);
-        savedProduct = updated; 
+        savedProduct = updated;
         info.setProduct(updated);
       }
-
+  
       await saveImageChanges(savedProduct.id);
-      setItems(items.map((p) => (p.id === savedProduct.id ? savedProduct : p)));
-
       return savedProduct;
     } catch (err) {
       console.error('❌ submit 錯誤：', err);
       throw err;
     }
-  }, [info, items, setItems, saveImageChanges]);
+  }, [info, saveImageChanges]);
+  
+  
 
   const deleteProduct = useCallback(async (id: number): Promise<boolean> => {
     if (!confirm('確認要刪除這個商品嗎？')) return false;
 
     try {
       await adminProductApi.deleteProduct(id);
-      removeItemById(id);
+      removeProduct(id); // ✅ 使用新版方法
       return true;
     } catch (err) {
       console.error('刪除失敗', err);
       alert('刪除失敗，請稍後再試');
       return false;
     }
-  }, [removeItemById]);
+  }, [removeProduct]);
 
   const addEmptyProduct = useCallback(() => {
+    const products = getAllProducts();
+    const hasTemp = products.some((p) => p.id === -1);
+    if (hasTemp) {
+      alert('請先儲存當前新增的商品');
+      return;
+    }
+  
     const empty = getEmptyProduct();
     addProduct(empty);
-  }, [addProduct]);
+  }, [addProduct, getAllProducts]);
+  
 
   return {
     submit,
     deleteProduct,
-    addEmptyProduct, // ✅ 新增的功能
-    info, 
+    addEmptyProduct,
+    info,
+    image: {
+      getImagesByProductId,
+      fetchImages,
+      addNewImage,
+      setMainImage,
+      toggleSelected,
+      markForDelete,
+      buildImageFormData,
+      buildImageSubmission,
+      saveImageChanges,
+    },
     getPreviewImageUrl,
   };
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Product } from '@/types/product';
 import { useProductCardActions } from '@/hooks/useProductCardActions';
+import { useAuthStore } from '@/stores/authStore';
 
 interface ProductCardImageProps {
   product: Product;
@@ -12,7 +13,7 @@ const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
   const {
     image: {
       fetchImages,
-      getImages,
+      getImagesByProductId,
       toggleSelected,
       setMainImage,
       markForDelete,
@@ -20,22 +21,24 @@ const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
     },
   } = useProductCardActions(product);
 
-  const images = getImages(product.id);
+  const images = getImagesByProductId(product.id);
+  // useEffect(() => { 
+  //   if (images.length === 0) { 
+  //     fetchImages(product.id);
+  //   }
+  // }, [product.id, images.length]);
+  const { hasPermission } = useAuthStore();
 
-  useEffect(() => {
-    const existing = getImages(product.id);
-    if (!existing || existing.length === 0) {
-      fetchImages(product.id);
-    }
-  }, [product.id, fetchImages, getImages]);
+  
+  
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    for (let i = 0; i < files.length; i++) {
-      addNewImage(product.id, files[i]);
-    }
+    Array.from(files).forEach((file) => {
+      addNewImage(product.id, file);
+    });
 
     e.target.value = '';
   };
@@ -50,7 +53,9 @@ const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
       </div>
 
       <div style={{ marginBottom: '1rem' }}>
-        <button onClick={() => fileInputRef.current?.click()}>匯入圖片</button>
+        {(hasPermission('canUpload') )&&
+          <button onClick={() => fileInputRef.current?.click()}>匯入圖片</button>
+          }
         <input
           ref={fileInputRef}
           type="file"
@@ -89,7 +94,11 @@ const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
                 src={img.url}
                 alt={img.fileName}
                 style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }}
-                onClick={() => toggleSelected(product.id, key)}
+ 
+                onClick={() => {
+                  if (!hasPermission('canEdit')) return;
+                  toggleSelected(product.id, key)}
+                }
               />
 
               <div style={{ marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -98,6 +107,7 @@ const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
                     type="radio"
                     name={`main-image-${product.id}`}
                     checked={img.isMain}
+                    disabled={!hasPermission('canUpload')}
                     onChange={() => setMainImage(product.id, key)}
                   />{' '}
                   主圖
@@ -105,6 +115,7 @@ const ProductCardImage: React.FC<ProductCardImageProps> = ({ product }) => {
 
                 <button
                   onClick={() => markForDelete(product.id, key)}
+                  disabled={!hasPermission('canUpload')}
                   style={{ background: 'none', border: 'none', color: 'red', cursor: 'pointer', fontSize: '12px' }}
                 >
                   🗑 刪除

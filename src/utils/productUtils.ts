@@ -1,7 +1,7 @@
 import { Product } from '@/types/product';
 
 export const getEmptyProduct = (): Product => ({
-  id: 0,
+  id: -1,
   name: '',
   description: '',
   purchasePrice: 0,
@@ -10,7 +10,7 @@ export const getEmptyProduct = (): Product => ({
   stallName: '',
   source: '',
   sourceUrl: '',
-  customType: 'other',
+  customType: 'top',
   material: '',
   sizeMetrics: {},
   sizeNote: '',

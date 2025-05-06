@@ -1,24 +1,37 @@
 import React, { useState } from 'react';
-import useProductStore from '../../stores/productStore';
+import useProductStore from '@/stores/productStore';
+import { useProductActions } from '@/hooks/useProductsActions'; // ✅ 引入正確的 hook
 
 const ProductFilterForm: React.FC = () => {
-  const { filters, setFilters } = useProductStore();
-
+  const { filters } = useProductStore();
+  const { setFilters, resetFilters } = useProductActions(); // ✅ 使用這個，不是直接改 store
   const [localFilters, setLocalFilters] = useState({ ...filters });
 
-  const updateField = (key: keyof typeof localFilters, value: string) => {
+  const updateField = (key: keyof typeof localFilters, raw: string) => {
+    let value: string | number | undefined = raw.trim();
+
+    if (key === 'id') {
+      value = value === '' ? undefined : Number(value);
+      if (Number.isNaN(value)) value = undefined;
+    } else {
+      value = value === '' ? undefined : value;
+    }
+
     setLocalFilters((prev) => ({
       ...prev,
-      [key]: value || undefined,
+      [key]: value,
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setFilters(localFilters);
+    const sanitized = Object.fromEntries(
+      Object.entries(localFilters).filter(([_, v]) => v !== undefined)
+    );
+    setFilters(sanitized); // ✅ 正確版本，會觸發 fetch
   };
 
-  const resetFilters = () => {
+  const handleReset = () => {
     const cleared = {
       id: undefined,
       name: undefined,
@@ -27,7 +40,7 @@ const ProductFilterForm: React.FC = () => {
       source: undefined,
     };
     setLocalFilters(cleared);
-    setFilters(cleared);
+    resetFilters(); // ✅ 正確版本
   };
 
   return (
@@ -68,7 +81,7 @@ const ProductFilterForm: React.FC = () => {
       />
 
       <button type="submit">搜尋</button>
-      <button type="button" onClick={resetFilters}>重設</button>
+      <button type="button" onClick={handleReset}>重設</button>
     </form>
   );
 };

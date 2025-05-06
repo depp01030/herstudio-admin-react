@@ -5,16 +5,24 @@ import { v4 as uuidv4 } from 'uuid';
 interface ProductImageStore {
   imagesByProductId: Record<number, ProductImage[]>;
 
-  setImages: (productId: number, images: ProductImage[]) => void;
-  getImages: (productId: number) => ProductImage[];
-  updateImage: (productId: number, imageId: string | number, patch: Partial<ProductImage>) => void;
+  // ✅ 批次處理指定商品的圖片
+  setImagesByProductId: (productId: number, images: ProductImage[]) => void;
+  addImageByProductId: (productId: number, image: ProductImage) => void;
+  getImagesByProductId: (productId: number) => ProductImage[];
+  updateImageByProductId: (productId: number, imageId: string | number, patch: Partial<ProductImage>) => void;
+
+  // ✅ 單張圖片操作
+  getImageById: (imageId: string | number) => ProductImage | undefined;
+  updateImageById: (imageId: string | number, patch: Partial<ProductImage>) => void;
+
+  // ✅ 測試 mock 圖片
   getMockImages: (productId: number) => ProductImage[];
 }
 
 const useProductImageStore = create<ProductImageStore>((set, get) => ({
   imagesByProductId: {},
 
-  setImages(productId, images) {
+  setImagesByProductId(productId, images) {
     set((state) => ({
       imagesByProductId: {
         ...state.imagesByProductId,
@@ -23,23 +31,28 @@ const useProductImageStore = create<ProductImageStore>((set, get) => ({
     }));
   },
 
-  getImages(productId) {
+  addImageByProductId(productId, image) {
+    const current = get().imagesByProductId[productId] || [];
+    set((state) => ({
+      imagesByProductId: {
+        ...state.imagesByProductId,
+        [productId]: [...current, image],
+      },
+    }));
+  },
+
+  getImagesByProductId(productId) {
     return get().imagesByProductId[productId] || [];
   },
 
-  updateImage(productId, imageId, patch) {
+  updateImageByProductId(productId, imageId, patch) {
     set((state) => {
       const images = state.imagesByProductId[productId] || [];
-      const updated = images.map((img) => {
-        const isMatch = img.id === imageId || img.tempId === imageId;
-        if (!isMatch) return img;
-        return {
-          ...img,
-          ...patch,
-          tempId: undefined,
-          file: undefined,
-        };
-      });
+      const updated = images.map((img) =>
+        img.id === imageId || img.tempId === imageId
+          ? { ...img, ...patch }
+          : img
+      );
 
       return {
         imagesByProductId: {
@@ -48,6 +61,29 @@ const useProductImageStore = create<ProductImageStore>((set, get) => ({
         },
       };
     });
+  },
+
+  getImageById(imageId) {
+    const all = get().imagesByProductId;
+    for (const images of Object.values(all)) {
+      const found = images.find((img) => img.id === imageId || img.tempId === imageId);
+      if (found) return found;
+    }
+    return undefined;
+  },
+
+  updateImageById(imageId, patch) {
+    const state = get();
+    const newMap: typeof state.imagesByProductId = {};
+
+    for (const [pidStr, images] of Object.entries(state.imagesByProductId)) {
+      const productId = Number(pidStr);
+      newMap[productId] = images.map((img) =>
+        img.id === imageId || img.tempId === imageId ? { ...img, ...patch } : img
+      );
+    }
+
+    set({ imagesByProductId: newMap });
   },
 
   getMockImages(productId) {
