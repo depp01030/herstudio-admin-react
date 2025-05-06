@@ -23,38 +23,50 @@ const rolePermissions: Record<Role, Permissions> = {
 };
 
 interface AuthState {
+  accessToken: string | null;
   role: Role | null;
   isAuthenticated: boolean;
-  isInitialized: boolean; // ✅ 加上初始化狀態
-  login: (role: Role) => void;
+  isInitialized: boolean;
+
+  setAuth: (token: string, role: Role) => void;
   logout: () => void;
-  initFromServer: () => Promise<void>;
+  initFromLocal: () => Promise<void>;
   hasPermission: (action: keyof Permissions) => boolean;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
+  accessToken: null,
   role: null,
   isAuthenticated: false,
-  isInitialized: false, // ✅ 初始為 false
+  isInitialized: false,
 
-  login: (role) => set({
-    role,
-    isAuthenticated: true,
-    isInitialized: true, // ✅ 登入時也設為 true
-  }),
+  setAuth: (token, role) => {
+    localStorage.setItem('access_token', token);
+    set({ accessToken: token, role, isAuthenticated: true, isInitialized: true });
+  },
 
-  logout: () => set({
-    role: null,
-    isAuthenticated: false,
-    isInitialized: true, // ✅ 登出時也設為 true
-  }),
+  logout: () => {
+    localStorage.removeItem('access_token');
+    set({ accessToken: null, role: null, isAuthenticated: false, isInitialized: true });
+  },
 
-  initFromServer: async () => {
+  initFromLocal: async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      set({ isInitialized: true });
+      return;
+    }
+
+    // 設 token（給 apiService 調用時可以抓到）
+    set({ accessToken: token });
+
     try {
-      const { role } = await getCurrentUser();
+      const { role } = await getCurrentUser(); // ✅ 呼叫 /auth/me
       set({ role, isAuthenticated: true, isInitialized: true });
-    } catch (err) {
-      set({ role: null, isAuthenticated: false, isInitialized: true });
+    } catch {
+      // token 無效，清除
+      localStorage.removeItem('access_token');
+      set({ accessToken: null, role: null, isAuthenticated: false, isInitialized: true });
     }
   },
 

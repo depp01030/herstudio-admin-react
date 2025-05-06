@@ -23,7 +23,7 @@ export function useProductImageActions() {
     console.log('fetchImages', productId);
     if (productId === -1) return;
     const images = await adminImageApi.getProductImages(productId);
-    setImagesByProductId(productId, images.map((img) => ({
+    setImagesByProductId(productId, images.map((img: any) => ({
       ...img,
       productId,
       action: 'original',

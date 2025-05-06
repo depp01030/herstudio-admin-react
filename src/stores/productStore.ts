@@ -22,6 +22,7 @@ interface ProductStore {
   addProduct: (product: Product) => void;
   removeProduct: (id: string | number) => void;
   updateProductField: (id: string | number, key: keyof Product, value: any) => void;
+  updateProductById: (id: string | number, product: Partial<Product>) => void;
   rebindProductId: (oldId: string | number, newId: number) => void;
 
   // misc
@@ -43,20 +44,17 @@ const useProductStore = create<ProductStore>((set, get) => ({
   loading: false,
   error: null,
 
-  // ✅ 按照順序回傳所有產品（不排序）
   getAllProducts: () => {
     const { productMap, productIds } = get();
     return productIds.map((id) => productMap[id]).filter(Boolean);
   },
 
-  // ✅ 一次設定所有產品（會清空舊資料）
   setProducts: (products) => {
     const map = Object.fromEntries(products.map((p) => [p.id, p]));
     const ids = products.map((p) => p.id);
     set({ productMap: map, productIds: ids });
   },
 
-  // ✅ 合併產品資料並保留原順序
   appendProducts: (products) => {
     set((state) => {
       const newMap = { ...state.productMap };
@@ -108,6 +106,22 @@ const useProductStore = create<ProductStore>((set, get) => ({
           [id]: {
             ...product,
             [key]: value,
+          },
+        },
+      };
+    });
+  },
+
+  updateProductById: (id, product) => {
+    set((state) => {
+      const current = state.productMap[id];
+      if (!current) return {};
+      return {
+        productMap: {
+          ...state.productMap,
+          [id]: {
+            ...current,
+            ...product,
           },
         },
       };

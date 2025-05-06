@@ -12,7 +12,7 @@ export function useProductCardActions(initial?: Product) {
     getAllProducts,
     addProduct,
     removeProduct,
-    appendProducts,
+    updateProductById,
   } = useProductStore();
 
   const info = useProductCardInfoActions(initial ?? getEmptyProduct());
@@ -42,29 +42,30 @@ export function useProductCardActions(initial?: Product) {
         savedProduct = created;
         info.setProduct(created);
         rebindImageProductId(-1, created.id);
-        useProductStore.getState().rebindProductId(-1, created.id); // ✅ 核心修正
+        useProductStore.getState().rebindProductId(-1, created.id);
       } else {
         const updated = await adminProductApi.updateProduct(current.id, current);
         savedProduct = updated;
         info.setProduct(updated);
       }
-  
+
+      // ✅ 修正儲存後欄位為空問題
+      updateProductById(savedProduct.id, savedProduct);
+
       await saveImageChanges(savedProduct.id);
       return savedProduct;
     } catch (err) {
       console.error('❌ submit 錯誤：', err);
       throw err;
     }
-  }, [info, saveImageChanges]);
-  
-  
+  }, [info, saveImageChanges, updateProductById]);
 
   const deleteProduct = useCallback(async (id: number): Promise<boolean> => {
     if (!confirm('確認要刪除這個商品嗎？')) return false;
 
     try {
       await adminProductApi.deleteProduct(id);
-      removeProduct(id); // ✅ 使用新版方法
+      removeProduct(id);
       return true;
     } catch (err) {
       console.error('刪除失敗', err);
@@ -80,11 +81,10 @@ export function useProductCardActions(initial?: Product) {
       alert('請先儲存當前新增的商品');
       return;
     }
-  
+
     const empty = getEmptyProduct();
     addProduct(empty);
   }, [addProduct, getAllProducts]);
-  
 
   return {
     submit,
