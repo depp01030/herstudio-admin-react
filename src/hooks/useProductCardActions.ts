@@ -47,8 +47,7 @@ export function useProductCardActions(initial?: Product) {
         const updated = await adminProductApi.updateProduct(current.id, current);
         savedProduct = updated;
         info.setProduct(updated);
-      }
-
+      } 
       // ✅ 修正儲存後欄位為空問題
       updateProductById(savedProduct.id, savedProduct);
 
