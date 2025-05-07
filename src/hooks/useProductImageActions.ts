@@ -130,24 +130,29 @@ export function useProductImageActions() {
     const formData = buildImageFormData(productId);
     const response = await adminImageApi.saveImageChanges(formData);
     const updates = response.images;
-    console.log('saveImageChanges', updates);
-
-    for (const update of updates) {
-      const key = update.tempId ?? update.id;
-      if (!key) continue;
-      updateImageByProductId(productId, key, {
-        id: update.id,
-        productId,
-        fileName: update.fileName,
-        url: update.url,
-        isMain: update.isMain,
-        isSelected: update.isSelected,
-        action: 'original',
+  
+    // 取得舊的圖片陣列
+    const currentImages = getImagesByProductId(productId);
+  
+    // 合併後端回傳的圖片
+    const updatedImages = currentImages
+      .filter((img) => img.action !== 'delete') // 移除標記刪除的圖片
+      .map((img) => {
+        const updated = updates.find((update: { tempId: string | undefined; id: number | undefined; }) => update.tempId === img.tempId || update.id === img.id);
+        return updated
+          ? { ...img, ...updated, action: 'original' } // 更新圖片資料
+          : img;
       });
-    }
-
-    const final = getImagesByProductId(productId).filter((img) => img.action !== 'delete');
-    setImagesByProductId(productId, final);
+  
+    // 新增後端回傳中不存在於舊陣列的圖片
+    updates.forEach((update: { tempId: string | undefined; id: number | undefined; }) => {
+      if (!currentImages.some((img) => img.tempId === update.tempId || img.id === update.id)) {
+        updatedImages.push({ ...update, action: 'original' });
+      }
+    });
+  
+    // 更新到 imageStore
+    setImagesByProductId(productId, updatedImages);
   };
 
   // ✅ 提供預覽圖（主圖優先）
