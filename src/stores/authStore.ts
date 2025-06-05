@@ -57,7 +57,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return;
     }
 
-    // 設 token（給 apiService 調用時可以抓到）
+    // 設 token（給 axiosInstance 調用時可以抓到）
     set({ accessToken: token });
 
     try {

@@ -35,7 +35,7 @@
 2. 設定 `rolePermissions` 對照表
    - 根據角色給予 `canEdit`, `canDelete`, `canUpload` 權限
 
-3. 修改 `apiService.ts`
+3. 修改 `axiosInstance.ts`
    - 自動附上 `Authorization: Bearer <token>` header
 
 4. 在 UI 組件中加上權限條件
@@ -77,7 +77,7 @@
 
 11. 前端登入後儲存 token 與 role 到 `authStore`
 
-12. 所有 API 請求透過 `apiService` 自動加上 `Authorization`
+12. 所有 API 請求透過 `axiosInstance` 自動加上 `Authorization`
 
 13. 前端 UI 與後端 API 雙層權限驗證完成！
 
